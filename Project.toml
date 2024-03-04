@@ -1,0 +1,7 @@
+name = "ParFEM"
+uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
+authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
+version = "0.1.0"
+
+[deps]
+FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
