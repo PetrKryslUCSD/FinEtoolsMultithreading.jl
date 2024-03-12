@@ -1,23 +1,47 @@
 
+# function _populate_dofs(n, n2n, dofnums, start, dofs)
+#     nd = size(dofnums, 2)
+#     totd = length(n2n.map[n]) * nd
+#     _dofs = fill(zero(eltype(dofs)), totd)
+#     p = 1
+#     for k in n2n.map[n]
+#         for d in axes(dofnums, 2)
+#             _dofs[p] = dofnums[k, d]
+#             p += 1
+#         end
+#     end
+#     sort!(_dofs)
+#     for d in axes(dofnums, 2)
+#         j = dofnums[n, d]
+#         s = start[j]
+#         p = 0
+#         for m in eachindex(_dofs)
+#             dofs[s+p] = _dofs[m]
+#             p += 1
+#         end
+#     end
+#     return nothing
+# end
+
 function _populate_dofs(n, n2n, dofnums, start, dofs)
-    nd = size(dofnums, 2)
-    totd = length(n2n.map[n]) * nd
-    _dofs = fill(zero(eltype(dofs)), totd)
-    p = 1
+    # nd = size(dofnums, 2)
+    # totd = length(n2n.map[n]) * nd
+    # _dofs = fill(zero(eltype(dofs)), totd)
+    # p = 1
+    s1 = start[dofnums[n, 1]]
+    p = 0
     for k in n2n.map[n]
         for d in axes(dofnums, 2)
-            _dofs[p] = dofnums[k, d]
+            dofs[s1+p] = dofnums[k, d]
             p += 1
         end
     end
-    sort!(_dofs)
-    for d in axes(dofnums, 2)
-        j = dofnums[n, d]
-        s = start[j]
-        p = 0
-        for m in eachindex(_dofs)
-            dofs[s+p] = _dofs[m]
-            p += 1
+    bl = p
+    sort!(@view(dofs[s1:s1+bl-1]))
+    for d in 2:size(dofnums, 2)
+        s = start[dofnums[n, d]]
+        for p in 0:1:bl-1
+            dofs[s+p] = dofs[s1+p]
         end
     end
     return nothing
