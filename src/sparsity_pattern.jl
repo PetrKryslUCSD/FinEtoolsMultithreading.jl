@@ -1,10 +1,10 @@
 
 function _populate_dofs(n, n2n, dofnums, start, dofs)
     nd = size(dofnums, 2)
-    totd = length(n2n[n]) * nd
+    totd = length(n2n.map[n]) * nd
     _dofs = fill(zero(eltype(dofs)), totd)
     p = 1
-    for k in n2n[n]
+    for k in n2n.map[n]
         for d in axes(dofnums, 2)
             _dofs[p] = dofnums[k, d]
             p += 1
@@ -25,10 +25,10 @@ end
 
 function _prepare_start_dofs(IT, n2n, dofnums)
     nd = size(dofnums, 2)
-    total_dofs = length(n2n) * nd
+    total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs+1)
-    for k in eachindex(n2n)
-        kl = length(n2n[k]) * nd
+    for k in eachindex(n2n.map)
+        kl = length(n2n.map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
             lengths[j] = kl
@@ -67,4 +67,9 @@ function sparsity_pattern_symmetric(fes, u)
         _populate_dofs(n, n2n, u.dofnums, start, dofs)
     end
     return start, dofs
+end
+
+function csc_matrix_pattern(fes, u)
+    start, dofs = sparsity_pattern_symmetric(fes, u)
+    return SparseMatrixCSC(nalldofs(u), nalldofs(u), start, dofs, fill(zero(eltype(u.values)), length(dofs)))
 end
