@@ -1,3 +1,4 @@
+# This is about twenty percent faster than the original version.
 function _populate_dofs(n, n2n, dofnums, start, dofs)
     s1 = start[dofnums[n, 1]]
     p = 0
@@ -17,6 +18,30 @@ function _populate_dofs(n, n2n, dofnums, start, dofs)
     end
     return nothing
 end
+
+# function _populate_dofs(n, n2n, dofnums, start, dofs)
+#     nd = size(dofnums, 2)
+#     totd = length(n2n.map[n]) * nd
+#     _dofs = fill(zero(eltype(dofs)), totd)
+#     p = 1
+#     for k in n2n.map[n]
+#         for d in axes(dofnums, 2)
+#             _dofs[p] = dofnums[k, d]
+#             p += 1
+#         end
+#     end
+#     sort!(_dofs)
+#     for d in axes(dofnums, 2)
+#         j = dofnums[n, d]
+#         s = start[j]
+#         p = 0
+#         for m in eachindex(_dofs)
+#             dofs[s+p] = _dofs[m]
+#             p += 1
+#         end
+#     end
+#     return nothing
+# end
 
 function _prepare_start_dofs(IT, n2n, dofnums)
     nd = size(dofnums, 2)
@@ -57,6 +82,20 @@ function sparsity_pattern_symmetric(fes, u)
     IT = eltype(u.dofnums)
     n2e = FENodeToFEMap(fes.conn, nnodes(u))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    start, dofs = _prepare_start_dofs(IT, n2n, u.dofnums)
+    Base.Threads.@threads for n in axes(u.dofnums, 1)
+        _populate_dofs(n, n2n, u.dofnums, start, dofs)
+    end
+    return start, dofs
+end
+
+"""
+    sparsity_pattern_symmetric(fes, u, n2e, n2n)
+
+Create symmetric sparsity pattern.
+"""
+function sparsity_pattern_symmetric(fes, u, n2e, n2n)
+    IT = eltype(u.dofnums)
     start, dofs = _prepare_start_dofs(IT, n2n, u.dofnums)
     Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_dofs(n, n2n, u.dofnums, start, dofs)
