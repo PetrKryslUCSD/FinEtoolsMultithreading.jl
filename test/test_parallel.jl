@@ -147,3 +147,35 @@ end
 test()
 nothing
 end
+
+module mparallelassembly_4
+using FinEtools
+using ParFEM: parallel_make_csc_matrix, sparsity_pattern_symmetric
+using LinearAlgebra
+using Test
+
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    N = 1
+    nl, nt, nw = 32, 33, 64
+    # nl, nt, nw = 2, 3, 2
+    ntasks = 2
+
+    fens, fes = H8block(L, W, t, N * nl, N * nw, N * nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+
+    @time n2e = FENodeToFEMap(fes.conn, count(fens))
+    @time n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    @time colptr, rowvals = sparsity_pattern_symmetric(fes, psi, n2e, n2n)
+    
+    true
+end
+test()
+nothing
+end
