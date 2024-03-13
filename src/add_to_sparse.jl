@@ -8,7 +8,7 @@ function zerooutsparse(S)
     return S
 end
 
-function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT)  where {IT}
+function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) where {IT}
     @inbounds while left <= right # Generating the middle element position 
         mid = fld((left + right), 2) # If element > mid, then it can only be present in right subarray
         if array[mid] < target
@@ -30,17 +30,37 @@ function _updcol!(nzval, i, v, st, fi, rowval)
 end
 
 """
-    addtosparse(S, I, J, V)
+    addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
 
 Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-function addtosparse(S, I, J, V)
-    nzval = S.nzval; colptr = S.colptr; rowval = S.rowval;
+function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
+    nzval = S.nzval
+    colptr = S.colptr
+    rowval = S.rowval
     Threads.@threads for t in eachindex(J)
         j = J[t]
-        _updcol!(nzval, I[t], V[t], colptr[j], colptr[j+1]-1, rowval)
+        _updcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+    end
+    return S
+end
+
+"""
+    addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
+
+Add the values from the array `V` given the row and column indexes in the arrays
+`I` and `J`. The expectation is that the indexes respect the sparsity pattern of
+the sparse array `S`. 
+"""
+function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
+    nzval = S.nzval
+    rowptr = S.rowptr
+    colval = S.colval
+    Threads.@threads for t in eachindex(I)
+        i = I[t]
+        _updcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
     end
     return S
 end

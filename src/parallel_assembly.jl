@@ -160,7 +160,10 @@ function make_task_assemblers(
     ndn = ndofs(uf)
     elem_mat_nrows = nne * ndn
     elem_mat_ncols = nne * ndn
-    triples = [expectedntriples(assembler, elem_mat_nrows, elem_mat_ncols, n) for n in elem_mat_nmatrices]
+    triples = [
+        expectedntriples(assembler, elem_mat_nrows, elem_mat_ncols, n) for
+        n in elem_mat_nmatrices
+    ]
     # Make there task assemblers
     assemblers = AssemblerType[]
     iend = 0
