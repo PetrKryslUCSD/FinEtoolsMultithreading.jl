@@ -1,7 +1,7 @@
 name = "ParFEM"
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "0.1.4"
+version = "0.1.5"
 
 [deps]
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
@@ -10,3 +10,11 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+ChunkSplitters = "^2"
+FinEtools = "^8"
+SparseMatricesCSR = "^0.6"
+SparseArrays = "^1.10"
+LinearAlgebra = "^1.10"
+julia = "^1.10"
