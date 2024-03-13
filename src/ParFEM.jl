@@ -7,6 +7,7 @@ module ParFEM
 
 using SparseArrays
 using ChunkSplitters
+using SparseMatricesCSR
 using FinEtools
 
 include("sparsity_pattern.jl")
