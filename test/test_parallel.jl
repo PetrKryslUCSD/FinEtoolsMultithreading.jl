@@ -266,3 +266,48 @@ end
 test()
 nothing
 end
+
+module mparallelassembly_7
+using FinEtools
+using ParFEM.Exports
+using LinearAlgebra
+using Test
+
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 12, 33, 24
+    nl, nt, nw = 2, 3, 2
+    ntasks = 2
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+
+    function createsubdomain(fessubset)
+        FEMMBase(IntegDomain(fessubset, GaussRule(3, 2)))
+    end
+
+    function matrixcomputation!(femm, assembler)
+        bilform_diffusion(femm, assembler, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    end
+
+    # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
+    # The code below equivalent to the line above.
+    assembler = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
+    K1 = make_pattern(fes, psi, :CSR)
+    add_to_matrix!(K1, assembler)
+
+    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSC)
+    
+    @test norm(K1 - K2) / norm(K2) <= 1.0e-5
+    
+    true
+end
+test()
+nothing
+end

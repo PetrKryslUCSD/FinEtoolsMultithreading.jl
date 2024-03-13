@@ -103,6 +103,11 @@ function sparsity_pattern_symmetric(fes, u, n2e, n2n)
     return start, dofs
 end
 
+"""
+    csc_matrix_pattern(fes, u)    
+
+Create a sparsity pattern of a CSC matrix.
+"""
 function csc_matrix_pattern(fes, u)
     start, dofs = sparsity_pattern_symmetric(fes, u)
     return SparseMatrixCSC(
@@ -114,6 +119,11 @@ function csc_matrix_pattern(fes, u)
     )
 end
 
+"""
+    csr_matrix_pattern(fes, u)
+    
+Create a sparsity pattern of a CSR matrix.
+"""
 function csr_matrix_pattern(fes, u)
     start, dofs = sparsity_pattern_symmetric(fes, u)
     return SparseMatricesCSR.SparseMatrixCSR{1}(
@@ -124,10 +134,4 @@ function csr_matrix_pattern(fes, u)
         fill(zero(eltype(u.values)), length(dofs)),
     )
 end
-# SparseMatrixCSR{Bi}(
-#       m::Integer,
-#       n::Integer,
-#       rowptr::Vector{Ti},
-#       colval::Vector{Ti},
-#       nzval::Vector{Tv}) where {Bi,Tv,Ti<:Integer}
 

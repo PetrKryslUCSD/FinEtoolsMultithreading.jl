@@ -221,20 +221,3 @@ function parallel_matrix_assembly(
     end
     return true
 end
-
-"""
-    add_to_matrix!(
-        S,
-        assembler::AT
-    ) where {AT<:AbstractSysmatAssembler}
-
-Update the global matrix.
-
-Use the sparsity pattern in `S`, and the COO data collected in the assembler.
-"""
-function add_to_matrix!(S, assembler::AT) where {AT<:AbstractSysmatAssembler}
-    # At this point all data is in the buffer
-    assembler._buffer_pointer = assembler._buffer_length + 1
-    setnomatrixresult(assembler, false)
-    return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer)
-end
