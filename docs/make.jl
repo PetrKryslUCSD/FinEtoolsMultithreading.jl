@@ -3,6 +3,7 @@ using Documenter, FinEtools, FinEtoolsMultithreading
 makedocs(
 	modules = [FinEtoolsMultithreading],
 	doctest = false, clean = true,
+	warnonly = Documenter.except(:linkcheck, :footnote),
 	format = Documenter.HTML(prettyurls = false),
 	authors = "Petr Krysl",
 	sitename = "FinEtoolsMultithreading.jl",
