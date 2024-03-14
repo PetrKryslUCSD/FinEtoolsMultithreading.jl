@@ -172,7 +172,7 @@ function test()
 
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    colptr, rowvals = sparsity_pattern_symmetric(fes, psi, n2e, n2n)
+    colptr, rowvals = sparsity_pattern_symmetric(fes, psi, n2n)
     
     true
 end
@@ -299,7 +299,7 @@ function test()
     # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
     # The code below equivalent to the line above.
     assembler = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
-    K1 = make_pattern(fes, psi, :CSR)
+    K1 = make_pattern_and_matrix(fes, psi, :CSR)
     add_to_matrix!(K1, assembler)
 
     K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSC)

@@ -82,11 +82,7 @@ function sparsity_pattern_symmetric(fes, u)
     IT = eltype(u.dofnums)
     n2e = FENodeToFEMap(fes.conn, nnodes(u))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    start, dofs = _prepare_start_dofs(IT, n2n, u.dofnums)
-    Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_dofs(n, n2n, u.dofnums, start, dofs)
-    end
-    return start, dofs
+    return sparsity_pattern_symmetric(fes, u, n2n)
 end
 
 """
@@ -94,7 +90,7 @@ end
 
 Create symmetric sparsity pattern.
 """
-function sparsity_pattern_symmetric(fes, u, n2e, n2n)
+function sparsity_pattern_symmetric(fes, u, n2n)
     IT = eltype(u.dofnums)
     start, dofs = _prepare_start_dofs(IT, n2n, u.dofnums)
     Base.Threads.@threads for n in axes(u.dofnums, 1)
@@ -104,34 +100,58 @@ function sparsity_pattern_symmetric(fes, u, n2e, n2n)
 end
 
 """
-    csc_matrix_pattern(fes, u)    
+    csc_matrix(fes, u)    
 
-Create a sparsity pattern of a CSC matrix.
+Create a symmetric sparse CSC matrix.
+
+Build a sparsity pattern first, then create the matrix. The assumption is that
+the matrix is symmetric.
 """
-function csc_matrix_pattern(fes, u)
+function csc_matrix(fes, u)
     start, dofs = sparsity_pattern_symmetric(fes, u)
+    return csc_matrix(start, dofs, nalldofs(u), zero(eltype(u.values)))
+end
+
+"""
+    csc_matrix(start, dofs, nrowscols, z = zero(Float64))
+
+Create a symmetric sparse CSC matrix from a pattern.
+"""
+function csc_matrix(start, dofs, nrowscols, z = zero(Float64))
     return SparseMatrixCSC(
-        nalldofs(u),
-        nalldofs(u),
+        nrowscols,
+        nrowscols,
         start,
         dofs,
-        fill(zero(eltype(u.values)), length(dofs)),
+        fill(z, length(dofs)),
     )
 end
 
 """
-    csr_matrix_pattern(fes, u)
-    
-Create a sparsity pattern of a CSR matrix.
+    csr_matrix(fes, u)
+
+Create a symmetric sparse CSR matrix.
+
+Build a sparsity pattern first, then create the matrix. The assumption is that
+the matrix is symmetric.
 """
-function csr_matrix_pattern(fes, u)
+function csr_matrix(fes, u)
     start, dofs = sparsity_pattern_symmetric(fes, u)
+    return csr_matrix(start, dofs, nalldofs(u), zero(eltype(u.values)))
+end
+
+"""
+    csr_matrix(start, dofs, nrowscols, z = zero(Float64))
+
+Create a symmetric sparse CSR matrix from a pattern.
+"""
+function csr_matrix(start, dofs, nrowscols, z = zero(Float64))
     return SparseMatricesCSR.SparseMatrixCSR{1}(
-        nalldofs(u),
-        nalldofs(u),
+        nrowscols,
+        nrowscols,
         start,
         dofs,
-        fill(zero(eltype(u.values)), length(dofs)),
+        fill(z, length(dofs)),
     )
 end
 
