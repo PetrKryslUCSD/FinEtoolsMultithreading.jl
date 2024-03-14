@@ -17,11 +17,14 @@ include("domain_decomposition.jl")
 include("high_level.jl")
 
 module Exports
+# The high level interface
 using ..FinEtoolsMultithreading: parallel_make_matrix
 export parallel_make_matrix
+# These three routines give access to intermediate steps
 using ..FinEtoolsMultithreading: fill_assembler
+export fill_assembler
 using ..FinEtoolsMultithreading: sparse_symmetric_zero
-export fill_assembler, sparse_symmetric_zero
+export sparse_symmetric_zero
 using ..FinEtoolsMultithreading: add_to_matrix!
 export add_to_matrix!
 end

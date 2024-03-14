@@ -195,7 +195,7 @@ end
 
 Execute the assembly in parallel.
 """
-function parallel_matrix_assembly(
+    function parallel_matrix_assembly(
     femms::AbstractArray{FEMM,1},
     assemblers::AbstractVector{AT},
     matrixcomputation!::F,
@@ -220,4 +220,18 @@ function parallel_matrix_assembly(
         end
     end
     return true
+end
+
+"""
+    fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
+
+Assemble a sparse matrix as a COO list.
+"""
+function fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
+    @time femms = subdomainfemms(fes, ntasks, crsubdom)
+    @time assembler = make_assembler(femms, SysmatAssemblerSparse, u)
+    @time start_assembler!(assembler)
+    @time assemblers = make_task_assemblers(femms, assembler, SysmatAssemblerSparse, u)
+    @time parallel_matrix_assembly(femms, assemblers, matrixcomputation!)
+    return assembler
 end
