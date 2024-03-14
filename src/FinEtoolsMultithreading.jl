@@ -20,12 +20,10 @@ module Exports
 using ..FinEtoolsMultithreading: parallel_make_matrix
 export parallel_make_matrix
 using ..FinEtoolsMultithreading: fill_assembler
-using ..FinEtoolsMultithreading: make_pattern_and_matrix
-export fill_assembler, make_pattern_and_matrix
+using ..FinEtoolsMultithreading: sparse_symmetric_zero
+export fill_assembler, sparse_symmetric_zero
 using ..FinEtoolsMultithreading: add_to_matrix!
 export add_to_matrix!
-using ..FinEtoolsMultithreading: sparsity_pattern_symmetric
-export sparsity_pattern_symmetric
 end
 
 # Enable LSP look up in test modules

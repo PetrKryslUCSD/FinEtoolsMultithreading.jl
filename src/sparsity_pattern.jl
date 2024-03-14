@@ -1,49 +1,28 @@
 # This is about twenty percent faster than the original version.
-function _populate_dofs(n, n2n, dofnums, start, dofs)
+function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
+    z = zero(eltype(nzval!))
     s1 = start[dofnums[n, 1]]
     p = 0
-    for k in n2n.map[n]
+    for k in neighbors
         for d in axes(dofnums, 2)
-            dofs[s1+p] = dofnums[k, d]
+            dofs![s1+p] = dofnums[k, d]
+            nzval![s1+p] = z
             p += 1
         end
     end
     bl = p
-    sort!(@view(dofs[s1:s1+bl-1]))
+    sort!(@view(dofs![s1:s1+bl-1]))
     for d in 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
-        for p = 0:1:bl-1
-            dofs[s+p] = dofs[s1+p]
+        for p in 0:1:bl-1
+            dofs![s+p] = dofs![s1+p]
+            nzval![s+p] = z
         end
     end
     return nothing
 end
 
-# function _populate_dofs(n, n2n, dofnums, start, dofs)
-#     nd = size(dofnums, 2)
-#     totd = length(n2n.map[n]) * nd
-#     _dofs = fill(zero(eltype(dofs)), totd)
-#     p = 1
-#     for k in n2n.map[n]
-#         for d in axes(dofnums, 2)
-#             _dofs[p] = dofnums[k, d]
-#             p += 1
-#         end
-#     end
-#     sort!(_dofs)
-#     for d in axes(dofnums, 2)
-#         j = dofnums[n, d]
-#         s = start[j]
-#         p = 0
-#         for m in eachindex(_dofs)
-#             dofs[s+p] = _dofs[m]
-#             p += 1
-#         end
-#     end
-#     return nothing
-# end
-
-function _prepare_start_dofs(IT, n2n, dofnums)
+function _prepare_arrays(IT, FT, n2n, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
@@ -70,88 +49,55 @@ function _prepare_start_dofs(IT, n2n, dofnums)
     end
     start[end] = sumlen + 1
     dofs = Vector{IT}(undef, sumlen)
-    return start, dofs
+    nzval = Vector{eltype(FT)}(undef, sumlen)
+    return start, dofs, nzval
 end
 
 """
-    sparsity_pattern_symmetric(fes, u)
+    sparse_symmetric_zero(u, n2n, kind = :CSC)
 
-Create symmetric sparsity pattern.
-"""
-function sparsity_pattern_symmetric(fes, u)
-    IT = eltype(u.dofnums)
+Create symmetric sparse zero matrix (sparsity pattern).
+
+Uses the following data structures:
+```
     n2e = FENodeToFEMap(fes.conn, nnodes(u))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    return sparsity_pattern_symmetric(fes, u, n2n)
-end
-
+```
 """
-    sparsity_pattern_symmetric(fes, u, n2e, n2n)
-
-Create symmetric sparsity pattern.
-"""
-function sparsity_pattern_symmetric(fes, u, n2n)
+function sparse_symmetric_zero(u, n2n, kind = :CSC)
+    @assert kind in [:CSC, :CSR]
     IT = eltype(u.dofnums)
-    start, dofs = _prepare_start_dofs(IT, n2n, u.dofnums)
+    FT = eltype(u.values)
+    nrowscols = nalldofs(u)
+    start, dofs, nzval = _prepare_arrays(IT, FT, n2n, u.dofnums)
     Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_dofs(n, n2n, u.dofnums, start, dofs)
+        _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
     end
-    return start, dofs
+    if kind == :CSC
+        K = _csc_matrix(start, dofs, nrowscols, nzval)
+    elseif kind == :CSR
+        K = _csr_matrix(start, dofs, nrowscols, nzval)
+    end
+    return K
 end
 
-"""
-    csc_matrix(fes, u)    
-
-Create a symmetric sparse CSC matrix.
-
-Build a sparsity pattern first, then create the matrix. The assumption is that
-the matrix is symmetric.
-"""
-function csc_matrix(fes, u)
-    start, dofs = sparsity_pattern_symmetric(fes, u)
-    return csc_matrix(start, dofs, nalldofs(u), zero(eltype(u.values)))
-end
-
-"""
-    csc_matrix(start, dofs, nrowscols, z = zero(Float64))
-
-Create a symmetric sparse CSC matrix from a pattern.
-"""
-function csc_matrix(start, dofs, nrowscols, z = zero(Float64))
+function _csc_matrix(start, dofs, nrowscols, nzval)
     return SparseMatrixCSC(
         nrowscols,
         nrowscols,
         start,
         dofs,
-        fill(z, length(dofs)),
+        nzval,
     )
 end
 
-"""
-    csr_matrix(fes, u)
-
-Create a symmetric sparse CSR matrix.
-
-Build a sparsity pattern first, then create the matrix. The assumption is that
-the matrix is symmetric.
-"""
-function csr_matrix(fes, u)
-    start, dofs = sparsity_pattern_symmetric(fes, u)
-    return csr_matrix(start, dofs, nalldofs(u), zero(eltype(u.values)))
-end
-
-"""
-    csr_matrix(start, dofs, nrowscols, z = zero(Float64))
-
-Create a symmetric sparse CSR matrix from a pattern.
-"""
-function csr_matrix(start, dofs, nrowscols, z = zero(Float64))
+function _csr_matrix(start, dofs, nrowscols, nzval)
     return SparseMatricesCSR.SparseMatrixCSR{1}(
         nrowscols,
         nrowscols,
         start,
         dofs,
-        fill(z, length(dofs)),
+        nzval,
     )
 end
 

@@ -150,7 +150,7 @@ end
 
 module mparallelassembly_4
 using FinEtools
-using FinEtoolsMultithreading: parallel_make_matrix, sparsity_pattern_symmetric
+using FinEtoolsMultithreading: parallel_make_matrix, sparse_symmetric_zero
 using LinearAlgebra
 using Test
 
@@ -172,7 +172,7 @@ function test()
 
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    colptr, rowvals = sparsity_pattern_symmetric(fes, psi, n2n)
+    K = sparse_symmetric_zero(psi, n2n)
     
     true
 end
@@ -299,7 +299,9 @@ function test()
     # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
     # The code below equivalent to the line above.
     assembler = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
-    K1 = make_pattern_and_matrix(fes, psi, :CSR)
+    n2e = FENodeToFEMap(fes.conn, nnodes(psi))
+    n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    K1 = sparse_symmetric_zero(psi, n2n, :CSR)
     add_to_matrix!(K1, assembler)
 
     K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSC)
