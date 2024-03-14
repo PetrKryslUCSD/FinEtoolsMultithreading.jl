@@ -3,7 +3,7 @@ function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
     z = zero(eltype(nzval!))
     s1 = start[dofnums[n, 1]]
     p = 0
-    for k in neighbors
+    @inbounds for k in neighbors
         for d in axes(dofnums, 2)
             dofs![s1+p] = dofnums[k, d]
             nzval![s1+p] = z
@@ -12,7 +12,7 @@ function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
     end
     bl = p
     sort!(@view(dofs![s1:s1+bl-1]))
-    for d in 2:size(dofnums, 2)
+    @inbounds for d in 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
         for p in 0:1:bl-1
             dofs![s+p] = dofs![s1+p]
@@ -26,7 +26,7 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
-    for k in eachindex(n2n.map)
+    @inbounds for k in eachindex(n2n.map)
         kl = length(n2n.map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
@@ -41,7 +41,7 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     sumlen += len
     start[1] = 1
     plen = len
-    for k in 2:total_dofs
+    @inbounds for k in 2:total_dofs
         len = start[k]
         sumlen += len
         start[k] = start[k-1] + plen
@@ -66,11 +66,12 @@ Uses the following data structures:
 """
 function sparse_symmetric_zero(u, n2n, kind = :CSC)
     @assert kind in [:CSC, :CSR]
+    @assert length(n2n.map) == size(u.dofnums, 1)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
     start, dofs, nzval = _prepare_arrays(IT, FT, n2n, u.dofnums)
-    Base.Threads.@threads for n in axes(u.dofnums, 1)
+    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
