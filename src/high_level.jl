@@ -1,7 +1,7 @@
 """
-    parallel_make_matrix(fes, u, crsubdom, matrixcomputation!, ntasks, kind = :CSC)
+    fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
 
-Assemble a sparse matrix.
+Assemble a sparse matrix as a COO list.
 """
 function fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
     femms = subdomainfemms(fes, ntasks, crsubdom)
@@ -32,7 +32,8 @@ end
 
 Assemble a sparse matrix.
 
-Either a `:CSC` matrix or a `:CSR` matrix are created.
+Either a `:CSC` matrix or a `:CSR` matrix is created. We shall refer to this
+matrix as a CSX matrix. The process is:
 
 1. Compute the matrix entries as a COO sparse format.
 2. Make the sparse pattern and create a sparse CSX matrix with all values zero.
