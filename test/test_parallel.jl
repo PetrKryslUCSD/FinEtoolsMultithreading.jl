@@ -1,7 +1,7 @@
 
 module mparallelassembly_1
 using FinEtools
-using ParFEM: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!
+using FinEtoolsMultithreading: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!
 using LinearAlgebra
 using Test
 
@@ -52,7 +52,7 @@ end
 
 module mparallelassembly_2
 using FinEtools
-using ParFEM: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!
+using FinEtoolsMultithreading: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!
 using LinearAlgebra
 using Test
 
@@ -104,7 +104,7 @@ end
 
 module mparallelassembly_3
 using FinEtools
-using ParFEM: parallel_make_matrix
+using FinEtoolsMultithreading: parallel_make_matrix
 using LinearAlgebra
 using Test
 
@@ -150,7 +150,7 @@ end
 
 module mparallelassembly_4
 using FinEtools
-using ParFEM: parallel_make_matrix, sparsity_pattern_symmetric
+using FinEtoolsMultithreading: parallel_make_matrix, sparsity_pattern_symmetric
 using LinearAlgebra
 using Test
 
@@ -182,7 +182,7 @@ end
 
 module mparallelassembly_5
 using FinEtools
-using ParFEM: parallel_make_matrix
+using FinEtoolsMultithreading: parallel_make_matrix
 using LinearAlgebra
 using Test
 
@@ -228,7 +228,7 @@ end
 
 module mparallelassembly_6
 using FinEtools
-using ParFEM: parallel_make_matrix
+using FinEtoolsMultithreading: parallel_make_matrix
 using LinearAlgebra
 using Test
 
@@ -269,7 +269,7 @@ end
 
 module mparallelassembly_7
 using FinEtools
-using ParFEM.Exports
+using FinEtoolsMultithreading.Exports
 using LinearAlgebra
 using Test
 
