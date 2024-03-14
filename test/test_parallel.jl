@@ -52,7 +52,7 @@ end
 
 module mparallelassembly_2
 using FinEtools
-using FinEtoolsMultithreading: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!
+using FinEtoolsMultithreading: make_assembler, make_task_assemblers, parallel_matrix_assembly, make_matrix!, start_assembler!
 using LinearAlgebra
 using Test
 
