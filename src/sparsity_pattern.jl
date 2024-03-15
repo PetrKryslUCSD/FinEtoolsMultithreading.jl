@@ -28,14 +28,14 @@ function _rowcol_lengths(IT, total_dofs, map, dofnums)
     # lengths = Vector{IT}(undef, total_dofs + 1)
     println("what?!")
     lengths = fill(zero(IT), total_dofs + 1)
+    lengths[1] = 1
     @inbounds Threads.@threads for k in eachindex(map)
         kl = length(map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
-            lengths[j] = kl
+            lengths[j+1] = kl
         end
     end
-    lengths[end] = 0
     return lengths
 end
 
@@ -44,18 +44,9 @@ function _calculate_start(IT, map, dofnums)
     total_dofs = length(map) * nd
     start = _rowcol_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    sumlen = 0
-    len = start[1]
-    sumlen += len
-    start[1] = 1
-    plen = len
-    @inbounds for k in 2:total_dofs
-        len = start[k]
-        sumlen += len
-        start[k] = start[k-1] + plen
-        plen = len
+    @inbounds for k in 1:total_dofs
+        start[k+1] += start[k] 
     end
-    start[end] = sumlen + 1
     return start
 end
 
