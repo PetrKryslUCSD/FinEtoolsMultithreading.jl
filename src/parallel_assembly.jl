@@ -72,7 +72,7 @@ function make_assembler(
     ndofs_row = nalldofs(uf)
     ndofs_col = nalldofs(uf)
     # Start the assembly
-    @time assembler = startassembly!(
+    assembler = startassembly!(
         AssemblerType(zero(UFT)),
         elem_mat_nrows,
         elem_mat_ncols,
