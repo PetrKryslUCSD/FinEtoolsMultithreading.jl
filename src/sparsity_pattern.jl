@@ -52,7 +52,7 @@ function _calculate_start(IT, map, dofnums)
     total_dofs = length(map) * nd
     start = _rowcol_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    @time ass(start)
+    @time acc(start)
     return start
 end
 
