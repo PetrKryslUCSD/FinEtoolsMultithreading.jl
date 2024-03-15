@@ -16,5 +16,17 @@ Create finite element machines for the subdomains.
     ```
 """
 function subdomainfemms(fes, ntasks, crsubdom)
-    return [crsubdom(subset(fes, ch)) for (ch, j) in chunks(1:count(fes), ntasks)]
+    if ntasks == 1
+        return [crsubdom(fes)]
+    else
+        sds = []
+        chks = chunks(1:count(fes), ntasks)
+        resize!(sds, ntasks)
+        Threads.@threads for k in 1:ntasks
+            (ch, j) = chks[k]
+            sds[k] = crsubdom(subset(fes, ch))
+        end
+        return typeof(sds[1])[sds[k] for k in eachindex(sds)]
+    # return [crsubdom(subset(fes, ch)) for (ch, j) in chunks(1:count(fes), ntasks)]
+    end
 end

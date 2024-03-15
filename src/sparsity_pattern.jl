@@ -86,8 +86,8 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
-    @time start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
-    @time @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
+    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
+    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
