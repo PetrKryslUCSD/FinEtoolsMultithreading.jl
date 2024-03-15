@@ -1,3 +1,4 @@
+using InteractiveUtils
 # This is about twenty percent faster than the original version.
 function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
     z = zero(eltype(nzval!))
@@ -36,23 +37,30 @@ function _rowcol_lengths(IT, total_dofs, map, dofnums)
     return lengths
 end
 
-function _prepare_arrays(IT, FT, map, dofnums)
+function _calculate_start(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
-    @time start = _rowcol_lengths(IT, total_dofs, map, dofnums)
+    start = _rowcol_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
     sumlen = 0
     len = start[1]
     sumlen += len
     start[1] = 1
     plen = len
-    @time @inbounds for k in 2:total_dofs
+    @inbounds for k in 2:total_dofs
         len = start[k]
         sumlen += len
         start[k] = start[k-1] + plen
         plen = len
     end
     start[end] = sumlen + 1
+    return start
+end
+
+function _prepare_arrays(IT, FT, map, dofnums)
+    # @code_warntype _calculate_start(IT, map, dofnums)
+    @time start = _calculate_start(IT, map, dofnums)
+    sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen)
     nzval = Vector{eltype(FT)}(undef, sumlen)
     return start, dofs, nzval
