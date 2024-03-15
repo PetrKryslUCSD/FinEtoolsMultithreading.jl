@@ -39,14 +39,20 @@ function _rowcol_lengths(IT, total_dofs, map, dofnums)
     return lengths
 end
 
+function acc(s)
+    len = length(s)
+    for k in 1:len-1
+        s[k+1] += s[k]
+    end
+    s
+end
+
 function _calculate_start(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
     start = _rowcol_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    @time @inbounds for k in 1:total_dofs
-        start[k+1] += start[k] 
-    end
+    @time ass(start)
     return start
 end
 
