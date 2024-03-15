@@ -22,20 +22,25 @@ function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
     return nothing
 end
 
-function _prepare_arrays(IT, FT, n2n, dofnums)
+function _rowcol_lengths(IT, total_dofs, map, dofnums)
     nd = size(dofnums, 2)
-    total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
-    @time @inbounds Threads.@threads for k in eachindex(n2n.map)
-        kl = length(n2n.map[k]) * nd
+    @inbounds Threads.@threads for k in eachindex(map)
+        kl = length(map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
             lengths[j] = kl
         end
     end
     lengths[end] = 0
-    # Now we start overwriting the lengths array with the starts
-    start = lengths
+    return lengths
+end
+
+function _prepare_arrays(IT, FT, map, dofnums)
+    nd = size(dofnums, 2)
+    total_dofs = length(map) * nd
+    @time start = _rowcol_lengths(IT, total_dofs, map, dofnums)
+    # Now we start overwriting the "lengths" array with the starts
     sumlen = 0
     len = start[1]
     sumlen += len
@@ -101,7 +106,7 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
-    start, dofs, nzval = _prepare_arrays(IT, FT, n2n, u.dofnums)
+    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
     @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
     end
