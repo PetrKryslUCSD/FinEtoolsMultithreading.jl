@@ -26,7 +26,7 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
-    @inbounds for k in eachindex(n2n.map)
+    @time @inbounds for k in eachindex(n2n.map)
         kl = length(n2n.map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
@@ -41,7 +41,7 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     sumlen += len
     start[1] = 1
     plen = len
-    @inbounds for k in 2:total_dofs
+    @time @inbounds for k in 2:total_dofs
         len = start[k]
         sumlen += len
         start[k] = start[k-1] + plen
