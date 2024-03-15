@@ -25,7 +25,8 @@ end
 
 function _rowcol_lengths(IT, total_dofs, map, dofnums)
     nd = size(dofnums, 2)
-    lengths = Vector{IT}(undef, total_dofs + 1)
+    # lengths = Vector{IT}(undef, total_dofs + 1)
+    lengths = fill(zero(IT), total_dofs + 1)
     @inbounds Threads.@threads for k in eachindex(map)
         kl = length(map[k]) * nd
         for d in axes(dofnums, 2)
