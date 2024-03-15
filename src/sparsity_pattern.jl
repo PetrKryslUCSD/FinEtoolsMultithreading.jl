@@ -44,7 +44,7 @@ function _calculate_start(IT, map, dofnums)
     total_dofs = length(map) * nd
     start = _rowcol_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    @inbounds for k in 1:total_dofs
+    @time @inbounds for k in 1:total_dofs
         start[k+1] += start[k] 
     end
     return start
