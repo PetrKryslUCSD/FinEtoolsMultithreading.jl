@@ -26,7 +26,7 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(n2n.map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
-    @time @inbounds for k in eachindex(n2n.map)
+    @time @inbounds Threads.@threads for k in eachindex(n2n.map)
         kl = length(n2n.map[k]) * nd
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
@@ -52,6 +52,37 @@ function _prepare_arrays(IT, FT, n2n, dofnums)
     nzval = Vector{eltype(FT)}(undef, sumlen)
     return start, dofs, nzval
 end
+
+# function _prepare_arrays(IT, FT, n2n, dofnums)
+#     nd = size(dofnums, 2)
+#     total_dofs = length(n2n.map) * nd
+#     lengths = Vector{IT}(undef, total_dofs + 1)
+#     @time @inbounds for k in eachindex(n2n.map)
+#         kl = length(n2n.map[k]) * nd
+#         for d in axes(dofnums, 2)
+#             j = dofnums[k, d]
+#             lengths[j] = kl
+#         end
+#     end
+#     lengths[end] = 0
+#     # Now we start overwriting the lengths array with the starts
+#     start = lengths
+#     sumlen = 0
+#     len = start[1]
+#     sumlen += len
+#     start[1] = 1
+#     plen = len
+#     @time @inbounds for k in 2:total_dofs
+#         len = start[k]
+#         sumlen += len
+#         start[k] = start[k-1] + plen
+#         plen = len
+#     end
+#     start[end] = sumlen + 1
+#     dofs = Vector{IT}(undef, sumlen)
+#     nzval = Vector{eltype(FT)}(undef, sumlen)
+#     return start, dofs, nzval
+# end
 
 """
     sparse_symmetric_zero(u, n2n, kind = :CSC)
