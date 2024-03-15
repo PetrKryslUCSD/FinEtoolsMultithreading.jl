@@ -72,7 +72,7 @@ function make_assembler(
     ndofs_row = nalldofs(uf)
     ndofs_col = nalldofs(uf)
     # Start the assembly
-    assembler = startassembly!(
+    @time assembler = startassembly!(
         AssemblerType(zero(UFT)),
         elem_mat_nrows,
         elem_mat_ncols,
@@ -230,8 +230,8 @@ Assemble a sparse matrix as a COO list.
 function fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
     @time femms = subdomainfemms(fes, ntasks, crsubdom)
     @time assembler = make_assembler(femms, SysmatAssemblerSparse, u)
-    @time start_assembler!(assembler)
-    @time assemblers = make_task_assemblers(femms, assembler, SysmatAssemblerSparse, u)
+    start_assembler!(assembler)
+    assemblers = make_task_assemblers(femms, assembler, SysmatAssemblerSparse, u)
     @time parallel_matrix_assembly(femms, assemblers, matrixcomputation!)
     return assembler
 end
