@@ -23,11 +23,14 @@ function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
     return nothing
 end
 
-function _rowcol_lengths(IT, total_dofs, map, dofnums)
+function _zeros_via_calloc(::Type{T}, dims::Integer...) where {T}
+    ptr = Ptr{T}(Libc.calloc(prod(dims), sizeof(T)))
+    return unsafe_wrap(Array{T}, ptr, dims; own=true)
+end
+
+function _dof_block_lengths(IT, total_dofs, map, dofnums)
     nd = size(dofnums, 2)
-    # lengths = Vector{IT}(undef, total_dofs + 1)
-    println("what?!")
-    lengths = fill(zero(IT), total_dofs + 1)
+    lengths = _zeros_via_calloc(IT, total_dofs + 1)
     lengths[1] = 1
     @inbounds Threads.@threads for k in eachindex(map)
         kl = length(map[k]) * nd
@@ -39,7 +42,7 @@ function _rowcol_lengths(IT, total_dofs, map, dofnums)
     return lengths
 end
 
-function acc(s)
+function _acc_start_ptr!(s)
     len = length(s)
     for k in 1:len-1
         s[k+1] += s[k]
@@ -50,51 +53,21 @@ end
 function _calculate_start(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
-    start = _rowcol_lengths(IT, total_dofs, map, dofnums)
+    # First we create an array of the lengths of the dof blocks
+    start = _dof_block_lengths(IT, total_dofs, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    @time acc(start)
+    _acc_start_ptr!(start)
     return start
 end
 
 function _prepare_arrays(IT, FT, map, dofnums)
     # @code_warntype _calculate_start(IT, map, dofnums)
-    @time start = _calculate_start(IT, map, dofnums)
+    start = _calculate_start(IT, map, dofnums)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen)
     nzval = Vector{eltype(FT)}(undef, sumlen)
     return start, dofs, nzval
 end
-
-# function _prepare_arrays(IT, FT, n2n, dofnums)
-#     nd = size(dofnums, 2)
-#     total_dofs = length(n2n.map) * nd
-#     lengths = Vector{IT}(undef, total_dofs + 1)
-#     @time @inbounds for k in eachindex(n2n.map)
-#         kl = length(n2n.map[k]) * nd
-#         for d in axes(dofnums, 2)
-#             j = dofnums[k, d]
-#             lengths[j] = kl
-#         end
-#     end
-#     lengths[end] = 0
-#     # Now we start overwriting the lengths array with the starts
-#     start = lengths
-#     sumlen = 0
-#     len = start[1]
-#     sumlen += len
-#     start[1] = 1
-#     plen = len
-#     @time @inbounds for k in 2:total_dofs
-#         len = start[k]
-#         sumlen += len
-#         start[k] = start[k-1] + plen
-#         plen = len
-#     end
-#     start[end] = sumlen + 1
-#     dofs = Vector{IT}(undef, sumlen)
-#     nzval = Vector{eltype(FT)}(undef, sumlen)
-#     return start, dofs, nzval
-# end
 
 """
     sparse_symmetric_zero(u, n2n, kind = :CSC)
@@ -113,8 +86,8 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
-    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
-    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
+    @time start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
+    @time @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
