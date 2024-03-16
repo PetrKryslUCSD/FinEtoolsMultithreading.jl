@@ -1,13 +1,11 @@
 using InteractiveUtils
 # This is about twenty percent faster than the original version.
-function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
-    z = zero(eltype(nzval!))
+function _populate_arrays!(dofs!, n, neighbors, dofnums, start)
     s1 = start[dofnums[n, 1]]
     p = 0
     @inbounds for k in neighbors
         for d in axes(dofnums, 2)
             dofs![s1+p] = dofnums[k, d]
-            nzval![s1+p] = z
             p += 1
         end
     end
@@ -17,7 +15,6 @@ function _populate_arrays!(dofs!, nzval!, n, neighbors, dofnums, start)
         s = start[dofnums[n, d]]
         for p in 0:1:bl-1
             dofs![s+p] = dofs![s1+p]
-            nzval![s+p] = z
         end
     end
     return nothing
@@ -65,7 +62,7 @@ function _prepare_arrays(IT, FT, map, dofnums)
     start = _calculate_start(IT, map, dofnums)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen)
-    nzval = Vector{eltype(FT)}(undef, sumlen)
+    nzval = _zeros_via_calloc(FT, sumlen)
     return start, dofs, nzval
 end
 
@@ -88,7 +85,7 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     nrowscols = nalldofs(u)
     start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
     @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_arrays!(dofs, nzval, n, n2n.map[n], u.dofnums, start)
+        _populate_arrays!(dofs, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
         K = _csc_matrix(start, dofs, nrowscols, nzval)
