@@ -50,9 +50,9 @@ end
 
 function _prepare_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
-    @time start = _dof_block_lengths(IT, map, dofnums)
+    start = _dof_block_lengths(IT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    @time _acc_start_ptr!(start)
+    _acc_start_ptr!(start)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen)
     nzval = _zeros_via_calloc(FT, sumlen)
@@ -76,11 +76,11 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
-    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
-    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
+    @time start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
+    @time @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
         _populate_with_lengths!(dofs, n, n2n.map[n], u.dofnums, start)
     end
-    if kind == :CSC
+    @time if kind == :CSC
         K = _csc_matrix(start, dofs, nrowscols, nzval)
     elseif kind == :CSR
         K = _csr_matrix(start, dofs, nrowscols, nzval)
