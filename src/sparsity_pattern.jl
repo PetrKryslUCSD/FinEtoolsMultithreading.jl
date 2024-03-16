@@ -1,6 +1,6 @@
 using InteractiveUtils
 # This is about twenty percent faster than the original version.
-function _populate_arrays!(dofs!, n, neighbors, dofnums, start)
+function _populate_with_lengths!(dofs!, n, neighbors, dofnums, start)
     s1 = start[dofnums[n, 1]]
     p = 0
     @inbounds for k in neighbors
@@ -25,8 +25,9 @@ function _zeros_via_calloc(::Type{T}, dims::Integer...) where {T}
     return unsafe_wrap(Array{T}, ptr, dims; own=true)
 end
 
-function _dof_block_lengths(IT, total_dofs, map, dofnums)
+function _dof_block_lengths(IT, map, dofnums)
     nd = size(dofnums, 2)
+    total_dofs = length(map) * nd
     lengths = _zeros_via_calloc(IT, total_dofs + 1)
     lengths[1] = 1
     @inbounds Threads.@threads for k in eachindex(map)
@@ -41,25 +42,17 @@ end
 
 function _acc_start_ptr!(s)
     len = length(s)
-    for k in 1:len-1
+    @inbounds for k in 1:len-1
         s[k+1] += s[k]
     end
     s
 end
 
-function _calculate_start(IT, map, dofnums)
-    nd = size(dofnums, 2)
-    total_dofs = length(map) * nd
-    # First we create an array of the lengths of the dof blocks
-    start = _dof_block_lengths(IT, total_dofs, map, dofnums)
-    # Now we start overwriting the "lengths" array with the starts
-    _acc_start_ptr!(start)
-    return start
-end
-
 function _prepare_arrays(IT, FT, map, dofnums)
-    # @code_warntype _calculate_start(IT, map, dofnums)
-    start = _calculate_start(IT, map, dofnums)
+    # First we create an array of the lengths of the dof blocks
+    @time start = _dof_block_lengths(IT, map, dofnums)
+    # Now we start overwriting the "lengths" array with the starts
+    @time _acc_start_ptr!(start)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen)
     nzval = _zeros_via_calloc(FT, sumlen)
@@ -85,7 +78,7 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     nrowscols = nalldofs(u)
     start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
     @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_arrays!(dofs, n, n2n.map[n], u.dofnums, start)
+        _populate_with_lengths!(dofs, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
         K = _csc_matrix(start, dofs, nrowscols, nzval)
