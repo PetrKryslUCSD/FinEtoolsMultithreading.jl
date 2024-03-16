@@ -1,6 +1,5 @@
-using InteractiveUtils
 # This is about twenty percent faster than the original version.
-function _populate_with_lengths!(dofs!, n, neighbors, dofnums, start)
+function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     s1 = start[dofnums[n, 1]]
     p = 0
     @inbounds for k in neighbors
@@ -13,9 +12,10 @@ function _populate_with_lengths!(dofs!, n, neighbors, dofnums, start)
     sort!(@view(dofs![s1:s1+bl-1]))
     @inbounds for d in 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
-        for p in 0:1:bl-1
-            dofs![s+p] = dofs![s1+p]
-        end
+        copy!(@view(dofs![s:s+bl-1]), @view(dofs![s1:s1+bl-1]))
+        # for p in 0:1:bl-1
+        #     dofs![s+p] = dofs![s1+p]
+        # end
     end
     return nothing
 end
@@ -54,8 +54,8 @@ function _prepare_arrays(IT, FT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
     _acc_start_ptr!(start)
     sumlen = start[end] - 1
-    dofs = Vector{IT}(undef, sumlen)
-    nzval = _zeros_via_calloc(FT, sumlen)
+    dofs = Vector{IT}(undef, sumlen) # This will get filled in later
+    nzval = _zeros_via_calloc(FT, sumlen) # This needs to be initialized for future accumulation
     return start, dofs, nzval
 end
 
@@ -76,35 +76,28 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
     IT = eltype(u.dofnums)
     FT = eltype(u.values)
     nrowscols = nalldofs(u)
-    @time start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
-    @time @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_with_lengths!(dofs, n, n2n.map[n], u.dofnums, start)
+    # This is about an order of magnitude less expensive than the next step
+    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
+    # This stops scaling for nthreads >= 32
+    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
+        _populate_with_dofs!(dofs, n, n2n.map[n], u.dofnums, start)
     end
-    @time if kind == :CSC
-        K = _csc_matrix(start, dofs, nrowscols, nzval)
+    if kind == :CSC
+        K = SparseMatrixCSC(
+            nrowscols,
+            nrowscols,
+            start,
+            dofs,
+            nzval,
+        )
     elseif kind == :CSR
-        K = _csr_matrix(start, dofs, nrowscols, nzval)
+        K = SparseMatricesCSR.SparseMatrixCSR{1}(
+            nrowscols,
+            nrowscols,
+            start,
+            dofs,
+            nzval,
+        )
     end
     return K
 end
-
-function _csc_matrix(start, dofs, nrowscols, nzval)
-    return SparseMatrixCSC(
-        nrowscols,
-        nrowscols,
-        start,
-        dofs,
-        nzval,
-    )
-end
-
-function _csr_matrix(start, dofs, nrowscols, nzval)
-    return SparseMatricesCSR.SparseMatrixCSR{1}(
-        nrowscols,
-        nrowscols,
-        start,
-        dofs,
-        nzval,
-    )
-end
-
