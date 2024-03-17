@@ -295,8 +295,8 @@ function test()
         FEMMBase(IntegDomain(fessubset, GaussRule(3, 2)))
     end
 
-    function matrixcomputation!(femm, assembler)
-        bilform_diffusion(femm, assembler, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    function matrixcomputation!(femm, assblr)
+        bilform_diffusion(femm, assblr, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     end
 
     # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)

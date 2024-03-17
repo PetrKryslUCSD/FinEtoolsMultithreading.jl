@@ -5,7 +5,7 @@
 CurrentModule = FinEtoolsMultithreading
 ```
 
-## Modules
+## High-level API
 
 ```@docs
 parallel_make_matrix
