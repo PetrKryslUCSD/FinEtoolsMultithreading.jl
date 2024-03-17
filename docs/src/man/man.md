@@ -8,6 +8,6 @@ CurrentModule = FinEtoolsMultithreading
 ## Modules
 
 ```@docs
-FinEtoolsMultithreading.Exports
+parallel_make_matrix
 ```
 
