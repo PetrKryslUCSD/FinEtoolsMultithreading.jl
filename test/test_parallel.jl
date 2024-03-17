@@ -132,7 +132,7 @@ function test()
         bilform_diffusion(femm, assembler, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     end
 
-    K = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks)
+    K = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!; ntasks = ntasks)
     
 
     K_ff = matrix_blocked_ff(K, nfreedofs(psi))
@@ -210,7 +210,8 @@ function test()
         bilform_diffusion(femm, assembler, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     end
 
-    K = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
+    K = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!; 
+        ntasks = ntasks, kind = :CSR)
     
 
     K_ff = matrix_blocked_ff(K, nfreedofs(psi))
@@ -256,8 +257,10 @@ function test()
         bilform_diffusion(femm, assembler, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     end
 
-    K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
-    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSC)
+    K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!;
+        ntasks=ntasks, kind=:CSR)
+    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!;
+        ntasks=ntasks, kind=:CSR)
     
     @test norm(K1 - K2) / norm(K2) <= 1.0e-5
     
@@ -298,13 +301,14 @@ function test()
 
     # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
     # The code below equivalent to the line above.
-    assembler = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
+    assblr = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
     n2e = FENodeToFEMap(fes.conn, nnodes(psi))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K1 = sparse_symmetric_zero(psi, n2n, :CSR)
-    add_to_matrix!(K1, assembler)
+    add_to_matrix!(K1, assblr)
 
-    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSC)
+    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!;
+        ntasks=ntasks, kind=:CSC)
     
     @test norm(K1 - K2) / norm(K2) <= 1.0e-5
     

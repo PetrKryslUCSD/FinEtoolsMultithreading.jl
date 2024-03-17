@@ -10,19 +10,16 @@ function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     end
     bl = p
     sort!(@view(dofs![s1:s1+bl-1]))
-    @inbounds for d in 2:size(dofnums, 2)
+    @inbounds for d = 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
         copy!(@view(dofs![s:s+bl-1]), @view(dofs![s1:s1+bl-1]))
-        # for p in 0:1:bl-1
-        #     dofs![s+p] = dofs![s1+p]
-        # end
     end
     return nothing
 end
 
 function _zeros_via_calloc(::Type{T}, dims::Integer...) where {T}
     ptr = Ptr{T}(Libc.calloc(prod(dims), sizeof(T)))
-    return unsafe_wrap(Array{T}, ptr, dims; own=true)
+    return unsafe_wrap(Array{T}, ptr, dims; own = true)
 end
 
 function _dof_block_lengths(IT, map, dofnums)
@@ -42,7 +39,7 @@ end
 
 function _acc_start_ptr!(s)
     len = length(s)
-    @inbounds for k in 1:len-1
+    @inbounds for k = 1:len-1
         s[k+1] += s[k]
     end
     s
@@ -83,21 +80,9 @@ function sparse_symmetric_zero(u, n2n, kind = :CSC)
         _populate_with_dofs!(dofs, n, n2n.map[n], u.dofnums, start)
     end
     if kind == :CSC
-        K = SparseMatrixCSC(
-            nrowscols,
-            nrowscols,
-            start,
-            dofs,
-            nzval,
-        )
+        K = SparseMatrixCSC(nrowscols, nrowscols, start, dofs, nzval)
     elseif kind == :CSR
-        K = SparseMatricesCSR.SparseMatrixCSR{1}(
-            nrowscols,
-            nrowscols,
-            start,
-            dofs,
-            nzval,
-        )
+        K = SparseMatricesCSR.SparseMatrixCSR{1}(nrowscols, nrowscols, start, dofs, nzval)
     end
     return K
 end
