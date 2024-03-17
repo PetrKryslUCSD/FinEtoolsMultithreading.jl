@@ -8,6 +8,6 @@ CurrentModule = FinEtoolsMultithreading
 ## Modules
 
 ```@docs
-FinEtoolsMultithreading
+FinEtoolsMultithreading.Exports
 ```
 
