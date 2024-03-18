@@ -49,7 +49,8 @@ function _prepare_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
     start = _dof_block_lengths(IT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    _acc_start_ptr!(start)
+    # _acc_start_ptr!(start)
+    ThreadedScans.scan!(+, start)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen) # This will get filled in later
     nzval = _zeros_via_calloc(FT, sumlen) # This needs to be initialized for future accumulation

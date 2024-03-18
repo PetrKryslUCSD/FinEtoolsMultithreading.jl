@@ -9,6 +9,7 @@ using SparseArrays
 using ChunkSplitters
 using SparseMatricesCSR
 using FinEtools
+using ThreadedScans
 
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
