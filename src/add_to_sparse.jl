@@ -22,10 +22,12 @@ function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) whe
     return 0
 end
 
-function _updroworcol!(nzval, i, v, st, fi, r_or_c)
+function _updroworcol!(nzval, i, v, st, fi, r_or_c, lck)
     k = _binary_search(r_or_c, i, st, fi)
     if k > 0
-        nzval[k] += v
+        Threads.lock(lck) do
+            nzval[k] += v
+        end
     end
 end
 
@@ -42,9 +44,10 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
+    lck = Threads.SpinLock();
     Threads.@threads for t in eachindex(J)
         j = J[t]
-        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval, lck)
     end
     return S
 end
@@ -62,9 +65,10 @@ function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
     nzval = S.nzval
     rowptr = S.rowptr
     colval = S.colval
+    lck = Threads.SpinLock();
     Threads.@threads for t in eachindex(I)
         i = I[t]
-        _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
+        _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval, lck)
     end
     return S
 end
