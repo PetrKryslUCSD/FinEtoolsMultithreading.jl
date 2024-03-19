@@ -50,7 +50,9 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
             Threads.@spawn let from = $from, to = $to
                 @inbounds for t in eachindex(J)
                     j = J[t]
-                    (from <= j <= to) && _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+                    if (from <= j <= to) 
+                        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+                    end
                 end
             end
         end
@@ -80,7 +82,9 @@ function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
             Threads.@spawn let from = $from, to = $to
                 @inbounds for t in eachindex(I)
                     i = I[t]
-                    (from <= i <= to) && _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
+                    if (from <= j <= to) 
+                        _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
+                    end
                 end
             end
         end
