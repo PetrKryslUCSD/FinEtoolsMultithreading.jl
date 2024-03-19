@@ -42,21 +42,49 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    chks = chunks(1:size(S, 2), Threads.nthreads())
-    Threads.@sync begin
-        for ch in chks
-            from = minimum(ch[1])
-            to = maximum(ch[1])
-            Threads.@spawn let from = $from, to = $to
-                @inbounds for t in eachindex(J)
-                    j = J[t]
-                    if (from <= j <= to) 
-                        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
-                    end
-                end
+
+    function do_one_entry(c)
+        while true
+            k = take!(c)
+            if k == 0
+                break
             end
+            j = J[k]
+            _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
         end
     end
+    
+    ntasks = Threads.nthreads()
+    c = [Channel{Int}() for _  in 1:ntasks]
+    tasks = Task[]
+    for t in 1:ntasks
+        push!(tasks, @task(do_one_entry(c[t])))
+        schedule(tasks[t])
+    end
+    for k in eachindex(J)
+        j = J[k]
+        t = rem(j, ntasks) + 1
+        put!(c[t], k)
+    end
+    for t in 1:ntasks
+        put!(c[t], 0)
+    end
+
+    # chks = chunks(1:size(S, 2), Threads.nthreads())
+    # Threads.@sync begin
+    #     for ch in chks
+    #         from = minimum(ch[1])
+    #         to = maximum(ch[1])
+    #         Threads.@spawn let from = $from, to = $to
+    #             @inbounds for t in eachindex(J)
+    #                 j = J[t]
+    #                 if (from <= j <= to) 
+    #                     _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+    #                 end
+    #             end
+    #         end
+    #     end
+    # end
     
     return S
 end
@@ -82,7 +110,7 @@ function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
             Threads.@spawn let from = $from, to = $to
                 @inbounds for t in eachindex(I)
                     i = I[t]
-                    if (from <= j <= to) 
+                    if (from <= i <= to) 
                         _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
                     end
                 end
