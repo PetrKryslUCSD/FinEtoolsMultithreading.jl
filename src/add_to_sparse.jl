@@ -42,49 +42,27 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-
-    function do_one_entry(c)
-        while true
-            k = take!(c)
-            if k == 0
-                break
+    chks = chunks(1:size(S, 2), Threads.nthreads())
+    @show blockl = max(
+        length(I),
+        eltype(I)(round(length(I) / 1000000)) + 133
+    )
+    Threads.@sync begin
+        for ch in chks
+            from = minimum(ch[1])
+            to = maximum(ch[1])
+            Threads.@spawn let from = $from, to = $to
+                for i in 1:blockl
+                    for t in i:blockl:length(J)
+                        j = J[t]
+                        if (from <= j <= to)
+                            _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+                        end
+                    end
+                end
             end
-            j = J[k]
-            _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
         end
     end
-    
-    ntasks = Threads.nthreads()
-    c = [Channel{Int}() for _  in 1:ntasks]
-    tasks = Task[]
-    for t in 1:ntasks
-        push!(tasks, @task(do_one_entry(c[t])))
-        schedule(tasks[t])
-    end
-    for k in eachindex(J)
-        j = J[k]
-        t = rem(j, ntasks) + 1
-        put!(c[t], k)
-    end
-    for t in 1:ntasks
-        put!(c[t], 0)
-    end
-
-    # chks = chunks(1:size(S, 2), Threads.nthreads())
-    # Threads.@sync begin
-    #     for ch in chks
-    #         from = minimum(ch[1])
-    #         to = maximum(ch[1])
-    #         Threads.@spawn let from = $from, to = $to
-    #             @inbounds for t in eachindex(J)
-    #                 j = J[t]
-    #                 if (from <= j <= to) 
-    #                     _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
-    #                 end
-    #             end
-    #         end
-    #     end
-    # end
     
     return S
 end
@@ -136,3 +114,30 @@ function add_to_matrix!(S, assembler::AT) where {AT<:AbstractSysmatAssembler}
     setnomatrixresult(assembler, false)
     return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer)
 end
+
+function do_one_entry(c)
+    while true
+        k = take!(c)
+        if k == 0
+            break
+        end
+        j = J[k]
+        _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
+    end
+end
+
+# ntasks = Threads.nthreads()
+# c = [Channel{Int}() for _  in 1:ntasks]
+# tasks = Task[]
+# for t in 1:ntasks
+#     push!(tasks, @task(do_one_entry(c[t])))
+#     schedule(tasks[t])
+# end
+# for k in eachindex(J)
+#     j = J[k]
+#     t = rem(j, ntasks) + 1
+#     put!(c[t], k)
+# end
+# for t in 1:ntasks
+#     put!(c[t], 0)
+# end
