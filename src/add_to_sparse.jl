@@ -42,17 +42,15 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    chks = chunks(1:size(S, 2), Threads.nthreads())
     blockl = min(length(I), 7)
+    ntasks = Threads.nthreads()
     Threads.@sync begin
-        for ch in chks
-            from = minimum(ch[1])
-            to = maximum(ch[1])
-            Threads.@spawn let from = $from, to = $to
+        for t in 1:ntasks
+            Threads.@spawn let task = $t
                 for i in 1:blockl
                     for t in i:blockl:length(J)
                         j = J[t]
-                        if (from <= j <= to)
+                        if rem(j, ntasks) + 1 == 
                             _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
                         end
                     end
