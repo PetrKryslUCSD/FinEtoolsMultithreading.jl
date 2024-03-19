@@ -59,12 +59,13 @@ the sparse array `S`.
 #     end
 #     return S
 # end
+
 function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
     IT = eltype(I)
-    blocksize = 1000
+    blocksize = 100000
     d = Dict{IT, Vector{Tuple{IT, IT}}}()
     p = 0
     while p < length(J)
