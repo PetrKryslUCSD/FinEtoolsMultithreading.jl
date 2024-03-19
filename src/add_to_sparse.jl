@@ -38,12 +38,11 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
+function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
     blockl = min(length(I), 7)
-    ntasks = Threads.nthreads()
     Threads.@sync begin
         for t in 1:ntasks
             Threads.@spawn let task = $t
@@ -72,11 +71,11 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
+function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseMatricesCSR.SparseMatrixCSR}
     nzval = S.nzval
     rowptr = S.rowptr
     colval = S.colval
-    chks = chunks(1:size(S, 1), Threads.nthreads())
+    chks = chunks(1:size(S, 1), ntasks)
     Threads.@sync begin
         for ch in chks
             from = minimum(ch[1])
@@ -104,11 +103,11 @@ Update the global matrix.
 
 Use the sparsity pattern in `S`, and the COO data collected in the assembler.
 """
-function add_to_matrix!(S, assembler::AT) where {AT<:AbstractSysmatAssembler}
+function add_to_matrix!(S, assembler::AT; ntasks = Threads.nthreads()) where {AT<:AbstractSysmatAssembler}
     # At this point all data is in the buffer
     assembler._buffer_pointer = assembler._buffer_length + 1
     setnomatrixresult(assembler, false)
-    return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer)
+    return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer, ntasks)
 end
 
 function do_one_entry(c)
