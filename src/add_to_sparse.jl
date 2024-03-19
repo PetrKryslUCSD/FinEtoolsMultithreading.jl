@@ -38,24 +38,51 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
+# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+#     nzval = S.nzval
+#     colptr = S.colptr
+#     rowval = S.rowval
+#     chks = chunks(1:size(S, 2), ntasks)
+#     Threads.@sync begin
+#         for ch in chks
+#             from = minimum(ch[1])
+#             to = maximum(ch[1])
+#             Threads.@spawn let from = $from, to = $to
+#                 for t in eachindex(J)
+#                     j = J[t]
+#                     if (from <= j <= to)
+#                         _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+#                     end
+#                 end
+#             end
+#         end
+#     end
+#     return S
+# end
 function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    chks = chunks(1:size(S, 2), ntasks)
-    Threads.@sync begin
-        for ch in chks
-            from = minimum(ch[1])
-            to = maximum(ch[1])
-            Threads.@spawn let from = $from, to = $to
-                for t in eachindex(J)
-                    j = J[t]
-                    if (from <= j <= to)
-                        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
-                    end
-                end
+    IT = eltype(I)
+    blocksize = 1000
+    d = Dict{IT, Vector{Tuple{IT, IT}}}()
+    p = 0
+    while p < length(J)
+        ub = min(blocksize, length(J) - p)
+        for b in 1:ub
+            p += 1
+            j = J[p]
+            if !(j in keys(d))
+                d[j] = Tuple{IT, IT}[]
+            end
+            push!(d[j], (p, I[p]))
+        end
+        Threads.@threads for j in [j for j in keys(d)]
+            for (_p, _i) in d[j]
+                _updroworcol!(nzval, _i, V[_p], colptr[j], colptr[j+1] - 1, rowval)
             end
         end
+        empty!(d)
     end
     return S
 end
