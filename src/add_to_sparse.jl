@@ -47,11 +47,12 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     Threads.@sync begin
         for t in 1:ntasks
             Threads.@spawn let task = $t
-                for i in 1:blockl
-                    for t in i:blockl:length(J)
-                        j = J[t]
-                        if rem(j, ntasks) + 1 == 
-                            _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+                @show task
+                for b in 1:blockl
+                    for s in b:blockl:length(J)
+                        j = J[s]
+                        if rem(j, ntasks) + 1 == task
+                            _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
                         end
                     end
                 end
