@@ -43,10 +43,7 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     colptr = S.colptr
     rowval = S.rowval
     chks = chunks(1:size(S, 2), Threads.nthreads())
-    @show blockl = max(
-        length(I),
-        eltype(I)(round(length(I) / 1000000)) + 133
-    )
+    blockl = min(length(I), 9731)
     Threads.@sync begin
         for ch in chks
             from = minimum(ch[1])
