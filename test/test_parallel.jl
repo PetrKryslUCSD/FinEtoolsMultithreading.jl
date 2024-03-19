@@ -238,7 +238,7 @@ function test()
     L = 12.0
     t = 0.32
     nl, nt, nw = 12, 33, 24
-    nl, nt, nw = 2, 3, 2
+    # nl, nt, nw = 2, 3, 2
     ntasks = 2
 
     fens, fes = H8block(L, W, t, nl, nw, nt)
@@ -281,7 +281,7 @@ function test()
     L = 12.0
     t = 0.32
     nl, nt, nw = 12, 33, 24
-    nl, nt, nw = 2, 3, 2
+    nl, nt, nw = 12, 13, 22
     ntasks = 2
 
     fens, fes = H8block(L, W, t, nl, nw, nt)
@@ -305,12 +305,60 @@ function test()
     n2e = FENodeToFEMap(fes.conn, nnodes(psi))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K1 = sparse_symmetric_zero(psi, n2n, :CSR)
-    add_to_matrix!(K1, assblr)
+    add_to_matrix!(K1, assblr, ntasks)
 
     K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!;
         ntasks=ntasks, kind=:CSC)
     
     @test norm(K1 - K2) / norm(K2) <= 1.0e-5
+    
+    true
+end
+test()
+nothing
+end
+
+module mparallelassembly_8
+using FinEtools
+using FinEtoolsMultithreading.Exports
+using LinearAlgebra
+using Test
+
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 12, 33, 24
+    nl, nt, nw = 12, 13, 22
+    ntasks = 2
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+
+    function createsubdomain(fessubset)
+        FEMMBase(IntegDomain(fessubset, GaussRule(3, 2)))
+    end
+
+    function matrixcomputation!(femm, assblr)
+        bilform_diffusion(femm, assblr, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    end
+
+    # K1 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!, ntasks, :CSR)
+    # The code below equivalent to the line above.
+    assblr = fill_assembler(fes, psi, createsubdomain, matrixcomputation!, ntasks)
+    n2e = FENodeToFEMap(fes.conn, nnodes(psi))
+    n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    K1 = sparse_symmetric_zero(psi, n2n, :CSC)
+    add_to_matrix!(K1, assblr, ntasks)
+
+    K2 = parallel_make_matrix(fes, psi, createsubdomain, matrixcomputation!;
+        ntasks=ntasks, kind=:CSC)
+    
+    @test norm(K1 - K2) / norm(K2) <= 1.0e-9
     
     true
 end
