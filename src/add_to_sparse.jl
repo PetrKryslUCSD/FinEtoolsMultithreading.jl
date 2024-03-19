@@ -42,23 +42,21 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    blockl = min(length(I), 7)
+    chks = chunks(1:size(S, 2), ntasks)
     Threads.@sync begin
-        for t in 1:ntasks
-            Threads.@spawn let task = $t
-                @show task
-                for b in 1:blockl
-                    for s in b:blockl:length(J)
-                        j = J[s]
-                        if rem(j, ntasks) + 1 == task
-                            _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-                        end
+        for ch in chks
+            from = minimum(ch[1])
+            to = maximum(ch[1])
+            Threads.@spawn let from = $from, to = $to
+                for t in eachindex(J)
+                    j = J[t]
+                    if (from <= j <= to)
+                        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
                     end
                 end
             end
         end
     end
-    
     return S
 end
 
@@ -94,32 +92,29 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseMatricesCSR.SparseMa
 end
 
 """
-    add_to_matrix!(
-        S,
-        assembler::AT
-    ) where {AT<:AbstractSysmatAssembler}
+    add_to_matrix!(S, assembler::AT, ntasks=Threads.nthreads()) where {AT<:AbstractSysmatAssembler}
 
 Update the global matrix.
 
 Use the sparsity pattern in `S`, and the COO data collected in the assembler.
 """
-function add_to_matrix!(S, assembler::AT; ntasks = Threads.nthreads()) where {AT<:AbstractSysmatAssembler}
+function add_to_matrix!(S, assembler::AT, ntasks=Threads.nthreads()) where {AT<:AbstractSysmatAssembler}
     # At this point all data is in the buffer
     assembler._buffer_pointer = assembler._buffer_length + 1
     setnomatrixresult(assembler, false)
     return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer, ntasks)
 end
 
-function do_one_entry(c)
-    while true
-        k = take!(c)
-        if k == 0
-            break
-        end
-        j = J[k]
-        _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
-    end
-end
+# function do_one_entry(c)
+#     while true
+#         k = take!(c)
+#         if k == 0
+#             break
+#         end
+#         j = J[k]
+#         _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
+#     end
+# end
 
 # ntasks = Threads.nthreads()
 # c = [Channel{Int}() for _  in 1:ntasks]
