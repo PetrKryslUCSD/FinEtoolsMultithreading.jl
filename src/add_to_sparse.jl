@@ -60,7 +60,7 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
     # end
-    @time Threads.@sync begin
+    Threads.@sync begin
         for t in 1:ntasks
            Threads.@spawn let 
                 for s in lo[t]:hi[t]
