@@ -38,52 +38,25 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
-#     nzval = S.nzval
-#     colptr = S.colptr
-#     rowval = S.rowval
-#     chks = chunks(1:size(S, 2), ntasks)
-#     Threads.@sync begin
-#         for ch in chks
-#             from = minimum(ch[1])
-#             to = maximum(ch[1])
-#             Threads.@spawn let from = $from, to = $to
-#                 for t in eachindex(J)
-#                     j = J[t]
-#                     if (from <= j <= to)
-#                         _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
-#                     end
-#                 end
-#             end
-#         end
-#     end
-#     return S
-# end
-
 function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    IT = eltype(I)
-    blocksize = 100000
-    d = Dict{IT, Vector{Tuple{IT, IT}}}()
-    p = 0
-    while p < length(J)
-        ub = min(blocksize, length(J) - p)
-        for b in 1:ub
-            p += 1
-            j = J[p]
-            if !(j in keys(d))
-                d[j] = Tuple{IT, IT}[]
-            end
-            push!(d[j], (p, I[p]))
-        end
-        Threads.@threads for j in [j for j in keys(d)]
-            for (_p, _i) in d[j]
-                _updroworcol!(nzval, _i, V[_p], colptr[j], colptr[j+1] - 1, rowval)
+    chks = chunks(1:size(S, 2), ntasks)
+    Threads.@sync begin
+        for t in 1:ntasks
+            ch = chks[t]
+            rowfirst = minimum(ch[1])
+            rowlast = maximum(ch[1])
+            Threads.@spawn let rowfirst = $rowfirst, rowlast = $rowlast
+                for s in eachindex(J)
+                    j = J[s]
+                    if (rowfirst <= j <= rowlast)
+                        _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+                    end
+                end
             end
         end
-        empty!(d)
     end
     return S
 end
@@ -158,4 +131,49 @@ end
 # end
 # for t in 1:ntasks
 #     put!(c[t], 0)
+# end
+
+# sweepfrom = fill(typemax(eltype(I)), ntasks)
+#     sweepto = fill(typemin(eltype(I)), ntasks)
+#     @show J[1:20]
+#     Threads.@threads for s in eachindex(J)
+#         @inbounds for t in 1:ntasks
+#             ch = chks[t]
+#             rowfirst = minimum(ch[1])
+#             rowlast = maximum(ch[1])
+#             if J[s] >= rowfirst && J[s] <= rowlast
+#                 sweepfrom[t] = min(sweepfrom[t], s)
+#                 sweepto[t] = max(sweepto[t], s)
+#             end
+#         end
+#     end
+#     @show length(J), sweepfrom, sweepto
+
+
+# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+#     nzval = S.nzval
+#     colptr = S.colptr
+#     rowval = S.rowval
+#     IT = eltype(I)
+#     blocksize = 100000
+#     d = Dict{IT, Vector{Tuple{IT, IT}}}()
+#     p = 0
+#     while p < length(J)
+#         ub = min(blocksize, length(J) - p)
+#         for b in 1:ub
+#             p += 1
+#             j = J[p]
+#             if !(j in keys(d))
+#                 d[j] = Tuple{IT, IT}[]
+#             end
+#             push!(d[j], (p, I[p]))
+#         end
+#         Threads.@threads for j in [j for j in keys(d)]
+#             for (_p, _i) in d[j]
+#                 _updroworcol!(nzval, _i, V[_p], colptr[j], colptr[j+1] - 1, rowval)
+#             end
+#         end
+#         empty!(d)
+#     end
+#     return S
 # end
