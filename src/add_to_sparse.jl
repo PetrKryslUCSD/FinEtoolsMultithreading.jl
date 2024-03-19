@@ -22,12 +22,10 @@ function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) whe
     return 0
 end
 
-function _updroworcol!(nzval, i, v, st, fi, r_or_c, lck)
+function _updroworcol!(nzval, i, v, st, fi, r_or_c)
     k = _binary_search(r_or_c, i, st, fi)
     if k > 0
-        Threads.lock(lck) do
-            nzval[k] += v
-        end
+        nzval[k] += v
     end
 end
 
@@ -44,11 +42,20 @@ function addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    lck = Threads.SpinLock();
-    Threads.@threads for t in eachindex(J)
-        j = J[t]
-        _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval, lck)
+    chks = chunks(1:size(S, 2), Threads.nthreads())
+    Threads.@sync begin
+        for ch in chks
+            from = minimum(ch[1])
+            to = maximum(ch[1])
+            Threads.@spawn let from = $from, to = $to
+                @inbounds for t in eachindex(J)
+                    j = J[t]
+                    (from <= j <= to) && _updroworcol!(nzval, I[t], V[t], colptr[j], colptr[j+1] - 1, rowval)
+                end
+            end
+        end
     end
+    
     return S
 end
 
@@ -65,10 +72,18 @@ function addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
     nzval = S.nzval
     rowptr = S.rowptr
     colval = S.colval
-    lck = Threads.SpinLock();
-    Threads.@threads for t in eachindex(I)
-        i = I[t]
-        _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval, lck)
+    chks = chunks(1:size(S, 1), Threads.nthreads())
+    Threads.@sync begin
+        for ch in chks
+            from = minimum(ch[1])
+            to = maximum(ch[1])
+            Threads.@spawn let from = $from, to = $to
+                @inbounds for t in eachindex(I)
+                    i = I[t]
+                    (from <= i <= to) && _updroworcol!(nzval, J[t], V[t], rowptr[i], rowptr[i+1] - 1, colval)
+                end
+            end
+        end
     end
     return S
 end
