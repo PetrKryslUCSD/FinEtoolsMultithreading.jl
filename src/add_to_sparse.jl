@@ -89,6 +89,7 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
+    @show length(J)
     @time prm = sortperm(J)
     @time begin
     I = I[prm]
@@ -102,16 +103,19 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     #         _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
     #     end
     # end
+    ncalls = 0
     Threads.@sync begin
         for t in 1:ntasks
             Threads.@spawn let 
                 for s in lo[t]:hi[t]
                     j = J[s]
                     _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+                    ncalls +=1 
                 end
             end
         end
     end
+    @show ncalls
     return S
 end
 
