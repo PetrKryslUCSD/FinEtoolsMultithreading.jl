@@ -29,26 +29,26 @@ function _updroworcol!(nzval, i, v, st, fi, r_or_c)
     end
 end
 
-# funBction _find_breaks(J, ntasks)
-#     chks = chunks(1:length(J), ntasks)
-#     lo = fill(1, ntasks)
-#     hi = fill(length(J), ntasks)
-#     for t in 1:ntasks
-#         ch = chks[t]
-#         rowfirst = minimum(ch[1])
-#         rowlast = maximum(ch[1])
-#         lo[t] = rowfirst
-#         hi[t] = rowlast
-#     end
-#     for t in 2:ntasks
-#         p = hi[t-1]
-#         c = J[p]
-#         while (J[p] == c) p += 1; end 
-#         hi[t-1] = p - 1
-#         lo[t] = p
-#     end
-#     return lo, hi
-# end
+function _find_breaks(J, ntasks)
+    chks = chunks(1:length(J), ntasks)
+    lo = fill(1, ntasks)
+    hi = fill(length(J), ntasks)
+    for t in 1:ntasks
+        ch = chks[t]
+        rowfirst = minimum(ch[1])
+        rowlast = maximum(ch[1])
+        lo[t] = rowfirst
+        hi[t] = rowlast
+    end
+    for t in 2:ntasks
+        p = hi[t-1]
+        c = J[p]
+        while (J[p] == c) p += 1; end 
+        hi[t-1] = p - 1
+        lo[t] = p
+    end
+    return lo, hi
+end
 
 # function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
 #     nzval = S.nzval
@@ -85,6 +85,36 @@ end
 #     return S
 # end
 
+function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+    nzval = S.nzval
+    colptr = S.colptr
+    rowval = S.rowval
+    @time prm = sortperm(J)
+    @time begin
+    I = I[prm]
+    J = J[prm]
+    V = V[prm]
+    end
+    lo, hi = _find_breaks(J, ntasks)
+    # Threads.@threads for t in 1:ntasks
+    #     @inbounds for s in lo[t]:hi[t]
+    #         j = J[s]
+    #         _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+    #     end
+    # end
+    Threads.@sync begin
+        for t in 1:ntasks
+            Threads.@spawn let 
+                for s in lo[t]:hi[t]
+                    j = J[s]
+                    _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+                end
+            end
+        end
+    end
+    return S
+end
+
 """
     addtosparse(S::T, I, J, V) where {T<:SparseArrays.SparseMatrixCSC}
 
@@ -94,28 +124,28 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
-    nzval = S.nzval
-    colptr = S.colptr
-    rowval = S.rowval
-    chks = chunks(1:size(S, 2), ntasks)
-    Threads.@sync begin
-        for t in 1:ntasks
-            ch = chks[t]
-            rowfirst = minimum(ch[1])
-            rowlast = maximum(ch[1])
-            Threads.@spawn let rowfirst = $rowfirst, rowlast = $rowlast
-                for s in eachindex(J)
-                    j = J[s]
-                    if (rowfirst <= j <= rowlast)
-                        _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-                    end
-                end
-            end
-        end
-    end
-    return S
-end
+# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+#     nzval = S.nzval
+#     colptr = S.colptr
+#     rowval = S.rowval
+#     chks = chunks(1:size(S, 2), ntasks)
+#     Threads.@sync begin
+#         for t in 1:ntasks
+#             ch = chks[t]
+#             rowfirst = minimum(ch[1])
+#             rowlast = maximum(ch[1])
+#             Threads.@spawn let rowfirst = $rowfirst, rowlast = $rowlast
+#                 for s in eachindex(J)
+#                     j = J[s]
+#                     if (rowfirst <= j <= rowlast)
+#                         _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+#                     end
+#                 end
+#             end
+#         end
+#     end
+#     return S
+# end
 
 """
     addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
