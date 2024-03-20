@@ -55,15 +55,17 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     colptr = S.colptr
     rowval = S.rowval
     @time prm = sortperm(J)
+    @time begin
     I = I[prm]
     J = J[prm]
     V = V[prm]
+    end
     lo, hi = _find_breaks(J, ntasks)
     # for k in 1:length(lo)
     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
     # end
-    Threads.@sync begin
+    @time Threads.@sync begin
         for t in 1:ntasks
            Threads.@spawn let l = lo[$t], h = hi[$t]
             @show l:h
