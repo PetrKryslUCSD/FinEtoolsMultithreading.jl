@@ -30,7 +30,7 @@ function _updroworcol!(nzval, i, v, st, fi, r_or_c)
 end
 
 # J is assumed to be sorted, in ascending order 
-function _find_breaks(J, ntasks)
+function _find_breaks2(J, ntasks)
     chks = chunks(1:length(J), ntasks)
     lo = fill(1, ntasks)
     hi = fill(length(J), ntasks)
@@ -51,47 +51,11 @@ function _find_breaks(J, ntasks)
     return lo, hi
 end
 
-# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
-#     nzval = S.nzval
-#     colptr = S.colptr
-#     rowval = S.rowval
-#     @time prm = sortperm(J)
-#     @time begin
-#     I = I[prm]
-#     J = J[prm]
-#     V = V[prm]
-#     end
-#     lo, hi = _find_breaks(J, ntasks)
-#     # for k in 1:length(lo)
-#     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
-#     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
-#     # end
-#     # Threads.@sync begin
-#     #     for t in 1:ntasks
-#     #        Threads.@spawn let l = lo[$t], h = hi[$t]
-#     #         @show l:h
-#     #             @inbounds for s in l:h
-#     #                 j = J[s]
-#     #                 _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-#     #             end
-#     #         end
-#     #     end
-#     # end
-#     Threads.@threads for t in 1:ntasks
-#         @inbounds for s in lo[t]:hi[t]
-#             j = J[s]
-#             _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-#         end
-#     end
-#     return S
-# end
-
-# 
-function _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+function _do_sweep2!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     Threads.@sync begin
         for t in 1:ntasks
             Threads.@spawn let 
-                for s in lo[t]:hi[t]
+                @inbounds for s in lo[t]:hi[t]
                     k = prm[s]
                     j = J[s]
                     _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
@@ -101,15 +65,83 @@ function _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     end
 end
 
-function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+function addtosparse2(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
     prm = _zeros_via_calloc(eltype(J), length(J))
-    @time prm .= 1:length(J)
-    @time PQuickSort.pquicksortperm!(J, prm)
-    lo, hi = _find_breaks(J, ntasks)
-    @time _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+    prm .= 1:length(J) # serial
+    PQuickSort.pquicksortperm!(J, prm) # Scales worse than the next step
+    lo, hi = _find_breaks2(J, ntasks)
+    _do_sweep2!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+    return S
+end
+
+function _find_breaks3(J, prm, ntasks)
+    chks = chunks(1:length(J), ntasks)
+    lo = fill(1, ntasks)
+    hi = fill(length(J), ntasks)
+    for t in 1:ntasks
+        ch = chks[t]
+        rowfirst = minimum(ch[1])
+        rowlast = maximum(ch[1])
+        lo[t] = rowfirst
+        hi[t] = rowlast
+    end
+    for t in 2:ntasks
+        p = hi[t-1]
+        c = J[prm[p]]
+        while (J[prm[p]] == c) p += 1; end 
+        hi[t-1] = p - 1
+        lo[t] = p
+    end
+    return lo, hi
+end
+
+function _do_sweep3!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+    Threads.@sync begin
+        for t in 1:ntasks
+            Threads.@spawn let 
+                for s in lo[t]:hi[t]
+                    k = prm[s]
+                    j = J[k]
+                    _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
+                end
+            end
+        end
+    end
+end
+
+function addtosparse3(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+    nzval = S.nzval
+    colptr = S.colptr
+    rowval = S.rowval
+    prm = sortperm(J) 
+    lo, hi = _find_breaks3(J, prm, ntasks)
+    _do_sweep3!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+    return S
+end
+
+function addtosparse1(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+    nzval = S.nzval
+    colptr = S.colptr
+    rowval = S.rowval
+    chks = chunks(1:size(S, 2), ntasks)
+    Threads.@sync begin
+        for t in 1:ntasks
+            ch = chks[t]
+            rowfirst = minimum(ch[1])
+            rowlast = maximum(ch[1])
+            Threads.@spawn let rowfirst = $rowfirst, rowlast = $rowlast
+                for s in eachindex(J)
+                    j = J[s]
+                    if (rowfirst <= j <= rowlast)
+                        _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+                    end
+                end
+            end
+        end
+    end
     return S
 end
 
@@ -122,28 +154,15 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
-#     nzval = S.nzval
-#     colptr = S.colptr
-#     rowval = S.rowval
-#     chks = chunks(1:size(S, 2), ntasks)
-#     Threads.@sync begin
-#         for t in 1:ntasks
-#             ch = chks[t]
-#             rowfirst = minimum(ch[1])
-#             rowlast = maximum(ch[1])
-#             Threads.@spawn let rowfirst = $rowfirst, rowlast = $rowlast
-#                 for s in eachindex(J)
-#                     j = J[s]
-#                     if (rowfirst <= j <= rowlast)
-#                         _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-#                     end
-#                 end
-#             end
-#         end
-#     end
-#     return S
-# end
+function addtosparse(S::T, I, J, V, ntasks, algorithm=1) where {T<:SparseArrays.SparseMatrixCSC}
+    return if algorithm == 1
+        addtosparse1(S, I, J, V, ntasks)
+    elseif algorithm == 2
+        addtosparse2(S, I, J, V, ntasks)
+    else
+        addtosparse3(S, I, J, V, ntasks)
+    end
+end
 
 """
     addtosparse(S::T, I, J, V) where {T<:SparseMatricesCSR.SparseMatrixCSR}
@@ -154,7 +173,7 @@ Add the values from the array `V` given the row and column indexes in the arrays
 `I` and `J`. The expectation is that the indexes respect the sparsity pattern of
 the sparse array `S`. 
 """
-function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseMatricesCSR.SparseMatrixCSR}
+function addtosparse(S::T, I, J, V, ntasks, algorithm = 1) where {T<:SparseMatricesCSR.SparseMatrixCSR}
     nzval = S.nzval
     rowptr = S.rowptr
     colval = S.colval
@@ -183,11 +202,15 @@ Update the global matrix.
 
 Use the sparsity pattern in `S`, and the COO data collected in the assembler.
 """
-function add_to_matrix!(S, assembler::AT, ntasks=Threads.nthreads()) where {AT<:AbstractSysmatAssembler}
+function add_to_matrix!(S, assembler::AT, ntasks=Threads.nthreads(); algorithm = 1) where {AT<:AbstractSysmatAssembler}
     # At this point all data is in the buffer
     assembler._buffer_pointer = assembler._buffer_length + 1
     setnomatrixresult(assembler, false)
-    return addtosparse(S, assembler._rowbuffer, assembler._colbuffer, assembler._matbuffer, ntasks)
+    return addtosparse(S,
+        assembler._rowbuffer,
+        assembler._colbuffer,
+        assembler._matbuffer,
+        ntasks, algorithm)
 end
 
 # function do_one_entry(c)
@@ -258,6 +281,41 @@ end
 #             end
 #         end
 #         empty!(d)
+#     end
+#     return S
+# end
+
+# function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixCSC}
+#     nzval = S.nzval
+#     colptr = S.colptr
+#     rowval = S.rowval
+#     prm = sortperm(J)
+#     begin
+#     I = I[prm]
+#     J = J[prm]
+#     V = V[prm]
+#     end
+#     lo, hi = _find_breaks(J, ntasks)
+#     # for k in 1:length(lo)
+#     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
+#     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
+#     # end
+#     # Threads.@sync begin
+#     #     for t in 1:ntasks
+#     #        Threads.@spawn let l = lo[$t], h = hi[$t]
+#     #         @show l:h
+#     #             @inbounds for s in l:h
+#     #                 j = J[s]
+#     #                 _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+#     #             end
+#     #         end
+#     #     end
+#     # end
+#     Threads.@threads for t in 1:ntasks
+#         @inbounds for s in lo[t]:hi[t]
+#             j = J[s]
+#             _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+#         end
 #     end
 #     return S
 # end
