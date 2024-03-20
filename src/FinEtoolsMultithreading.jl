@@ -10,6 +10,7 @@ using ChunkSplitters
 using SparseMatricesCSR
 using FinEtools
 using ThreadedScans
+using SortingLab
 
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")

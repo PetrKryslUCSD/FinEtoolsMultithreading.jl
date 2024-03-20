@@ -103,7 +103,7 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    @time prm = sortperm(J)
+    @time prm = SortingLab.fsortperm(J)
     # @time begin
     # I = I[prm]
     # J = J[prm]
