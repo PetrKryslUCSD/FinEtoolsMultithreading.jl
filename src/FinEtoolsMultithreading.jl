@@ -10,8 +10,11 @@ using ChunkSplitters
 using SparseMatricesCSR
 using FinEtools
 using ThreadedScans
-using SortingLab
 
+
+include("utilities.jl")
+include("parallel_sorting.jl")
+using .PQuickSort
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
 include("add_to_sparse.jl")

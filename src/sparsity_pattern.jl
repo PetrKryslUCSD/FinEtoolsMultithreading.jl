@@ -17,11 +17,6 @@ function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     return nothing
 end
 
-function _zeros_via_calloc(::Type{T}, dims::Integer...) where {T}
-    ptr = Ptr{T}(Libc.calloc(prod(dims), sizeof(T)))
-    return unsafe_wrap(Array{T}, ptr, dims; own = true)
-end
-
 function _dof_block_lengths(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd

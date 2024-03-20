@@ -29,7 +29,8 @@ function _updroworcol!(nzval, i, v, st, fi, r_or_c)
     end
 end
 
-function _find_breaks(J, prm, ntasks)
+# J is assumed to be sorted, in ascending order 
+function _find_breaks(J, ntasks)
     chks = chunks(1:length(J), ntasks)
     lo = fill(1, ntasks)
     hi = fill(length(J), ntasks)
@@ -42,8 +43,8 @@ function _find_breaks(J, prm, ntasks)
     end
     for t in 2:ntasks
         p = hi[t-1]
-        c = J[prm[p]]
-        while (J[prm[p]] == c) p += 1; end 
+        c = J[p]
+        while (J[p] == c) p += 1; end 
         hi[t-1] = p - 1
         lo[t] = p
     end
@@ -85,13 +86,14 @@ end
 #     return S
 # end
 
+# 
 function _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     Threads.@sync begin
         for t in 1:ntasks
             Threads.@spawn let 
                 for s in lo[t]:hi[t]
                     k = prm[s]
-                    j = J[k]
+                    j = J[s]
                     _updroworcol!(nzval, I[k], V[k], colptr[j], colptr[j+1] - 1, rowval)
                 end
             end
@@ -103,19 +105,10 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     nzval = S.nzval
     colptr = S.colptr
     rowval = S.rowval
-    @time prm = SortingLab.fsortperm(J)
-    # @time begin
-    # I = I[prm]
-    # J = J[prm]
-    # V = V[prm]
-    # end
-    lo, hi = _find_breaks(J, prm, ntasks)
-    # Threads.@threads for t in 1:ntasks
-    #     @inbounds for s in lo[t]:hi[t]
-    #         j = J[s]
-    #         _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-    #     end
-    # end
+    prm = _zeros_via_calloc(eltype(J), length(J))
+    prm .= 1:length(J)
+    @time PQuickSort.pquicksortperm!(J, prm)
+    lo, hi = _find_breaks(J, ntasks)
     _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     return S
 end
