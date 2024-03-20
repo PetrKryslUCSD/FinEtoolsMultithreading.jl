@@ -106,10 +106,10 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     colptr = S.colptr
     rowval = S.rowval
     prm = _zeros_via_calloc(eltype(J), length(J))
-    prm .= 1:length(J)
+    @time prm .= 1:length(J)
     @time PQuickSort.pquicksortperm!(J, prm)
     lo, hi = _find_breaks(J, ntasks)
-    _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
+    @time _do_sweep!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     return S
 end
 

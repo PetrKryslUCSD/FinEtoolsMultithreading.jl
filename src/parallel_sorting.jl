@@ -34,12 +34,12 @@ function pquicksortperm!(A, perm, i=1, j=length(A))
         return
     end
     left, right = _partition!(A, perm, A[(j+i) >>> 1], i, j)
-    # t = Threads.@spawn pquicksortperm!(A, perm, $i, $right)
-    # pquicksortperm!(A, perm, left, j)
-    # wait(t)
-    Threads.@threads for w in  ((i, right), (left, j))
-        pquicksortperm!(A, perm, w[1], w[2])
-    end
+    t = Threads.@spawn pquicksortperm!(A, perm, $i, $right)
+    pquicksortperm!(A, perm, left, j)
+    wait(t)
+    # Threads.@threads for w in  ((i, right), (left, j))
+    #     pquicksortperm!(A, perm, w[1], w[2])
+    # end
     return
 end
 
