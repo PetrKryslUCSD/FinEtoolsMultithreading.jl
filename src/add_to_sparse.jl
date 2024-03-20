@@ -29,7 +29,7 @@ function _updroworcol!(nzval, i, v, st, fi, r_or_c)
     end
 end
 
-function _find_breaks(J, prm, ntasks)
+function _find_breaks(J, ntasks)
     chks = chunks(1:length(J), ntasks)
     lo = fill(1, ntasks)
     hi = fill(length(J), ntasks)
@@ -42,8 +42,8 @@ function _find_breaks(J, prm, ntasks)
     end
     for t in 2:ntasks
         p = hi[t-1]
-        c = J[prm[p]]
-        while (J[prm[p]] == c) p += 1; end 
+        c = J[p]
+        while (J[p] == c) p += 1; end 
         hi[t-1] = p - 1
         lo[t] = p
     end
@@ -55,7 +55,10 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     colptr = S.colptr
     rowval = S.rowval
     @time prm = sortperm(J)
-    lo, hi = _find_breaks(J, prm, ntasks)
+    I = I[prm]
+    J = J[prm]
+    V = V[prm]
+    lo, hi = _find_breaks(J, ntasks)
     # for k in 1:length(lo)
     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
@@ -65,8 +68,8 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
            Threads.@spawn let l = lo[$t], h = hi[$t]
             @show l:h
                 @inbounds for s in l:h
-                    j = J[prm[s]]
-                    _updroworcol!(nzval, I[prm[s]], V[prm[s]], colptr[j], colptr[j+1] - 1, rowval)
+                    j = J[s]
+                    _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
                 end
             end
         end
