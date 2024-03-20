@@ -57,5 +57,5 @@ function parallel_make_matrix(
     assblr = fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K = sparse_symmetric_zero(u, n2n, kind)
-    return add_to_matrix!(K, assblr)
+    return add_to_matrix!(K, assblr, ntasks)
 end
