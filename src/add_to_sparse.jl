@@ -65,15 +65,21 @@ function addtosparse(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrixC
     #     @show J[prm[lo[k]]], J[prm[max(1,lo[k]-3):lo[k]+3]]    
     #     @show J[prm[hi[k]]], J[prm[hi[k]-3:min(length(J),hi[k]+3)]]    
     # end
-    Threads.@sync begin
-        for t in 1:ntasks
-           Threads.@spawn let l = lo[$t], h = hi[$t]
-            @show l:h
-                @inbounds for s in l:h
-                    j = J[s]
-                    _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
-                end
-            end
+    # Threads.@sync begin
+    #     for t in 1:ntasks
+    #        Threads.@spawn let l = lo[$t], h = hi[$t]
+    #         @show l:h
+    #             @inbounds for s in l:h
+    #                 j = J[s]
+    #                 _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
+    #             end
+    #         end
+    #     end
+    # end
+    Threads.@threads for t in 1:ntasks
+        @inbounds for s in lo[t]:hi[t]
+            j = J[s]
+            _updroworcol!(nzval, I[s], V[s], colptr[j], colptr[j+1] - 1, rowval)
         end
     end
     return S
