@@ -9,7 +9,7 @@ Create finite element machines for the subdomains.
 - `ntasks` = number of tasks (subdomains),
 - `element_colors` = array of element colors, one for each element,
 - `unique_colors` = array of the unique element colours,
-- `crsubdom` = function to create one finite element machine
+- `createsubdomain` = function to create one finite element machine
     Example: 
     ```
     function createsubdomain(fessubset)
@@ -17,17 +17,17 @@ Create finite element machines for the subdomains.
     end
     ```
 """
-function domain_decomposition(fes, ntasks, element_colors, unique_colors, crsubdom)
+function domain_decomposition(fes, ntasks, element_colors, unique_colors, createsubdomain)
     decomposition = []
-    Threads.@threads for color in element_colors
+    Threads.@threads for color in unique_colors
         color_list = findall(x -> x == color, element_colors)
         subsetfes = subset(fes, color_list)
         chks = chunks(1:count(subsetfes), ntasks)
         sds = []
-        resize!(sds, ntasks)
-        for k in eachindex(chks)
+        resize!(sds, length(chks))
+        for k in 1:length(chks)
             (ch, j) = chks[k]
-            sds[k] = crsubdom(subset(fes, ch))
+            sds[k] = createsubdomain(subset(subsetfes, ch))
         end
         push!(decomposition, typeof(sds[1])[sds[k] for k in eachindex(sds)])
     end

@@ -1,5 +1,12 @@
 """
-    parallel_make_matrix(fes, u, crsubdom, matrixcomputation!, ntasks, kind = :CSC)
+    parallel_make_matrix(
+        fes,
+        u,
+        createsubdomain,
+        matrixcomputation!;
+        ntasks = Threads.nthreads(),
+        kind = :CSC,
+    )
 
 Assemble a sparse matrix.
 
@@ -14,7 +21,7 @@ matrix as a CSX matrix. The process is:
 function parallel_make_matrix(
     fes,
     u,
-    crsubdom,
+    createsubdomain,
     matrixcomputation!;
     ntasks = Threads.nthreads(),
     kind = :CSC,
@@ -24,7 +31,7 @@ function parallel_make_matrix(
         fes,
         u,
         n2e,
-        crsubdom,
+        createsubdomain,
         matrixcomputation!,
         ntasks,
         kind
@@ -36,10 +43,10 @@ end
         fes,
         u,
         n2e,
-        crsubdom,
+        createsubdomain,
         matrixcomputation!,
         ntasks,
-        kind = :CSC,
+        kind
     )
 
 Assemble a sparse matrix.
@@ -48,7 +55,7 @@ function parallel_make_matrix(
     fes,
     u,
     n2e,
-    crsubdom,
+    createsubdomain,
     matrixcomputation!,
     ntasks,
     kind
@@ -57,14 +64,14 @@ function parallel_make_matrix(
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K = sparse_symmetric_csc_pattern(u.dofnums, nents(u), n2n, zero(eltype(u.values)))
     element_colors, unique_colors = element_coloring(fes, n2e)
-    decomposition = domain_decomposition(fes, ntasks, element_colors, unique_colors, crsubdom)
+    decomposition = domain_decomposition(fes, ntasks, element_colors, unique_colors, createsubdomain)
     assembler = SysmatAssemblerSparsePatt(0.0)
     associate_pattern(assembler, K)
-    parallel_matrix_assembly!(
+    K = parallel_matrix_assembly!(
         assembler,
         decomposition,
         matrixcomputation!,
         ntasks
     )
-    return assembler._pattern
+    return K
 end

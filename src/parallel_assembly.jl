@@ -172,8 +172,8 @@ function assemble!(
                 self._pattern.nzval,
                 di,
                 mat[i, j],
-                self._pattern.colptr[j],
-                self._pattern.colptr[j+1] - 1,
+                self._pattern.colptr[dj],
+                self._pattern.colptr[dj+1] - 1,
                 self._pattern.rowval,
             )
         end
@@ -245,5 +245,5 @@ function parallel_matrix_assembly!(
             matrixcomputation!(femms[j], assembler)
         end
     end
-    return true
+    return assembler._pattern
 end
