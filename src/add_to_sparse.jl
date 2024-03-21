@@ -71,7 +71,7 @@ function addtosparse2(S::T, I, J, V, ntasks) where {T<:SparseArrays.SparseMatrix
     rowval = S.rowval
     prm = _zeros_via_calloc(eltype(J), length(J))
     prm .= 1:length(J) # serial
-    PQuickSort.pquicksortperm!(J, prm) # Scales worse than the next step
+    PQuickSort.pquicksortperm!(prm, J) # Scales worse than the next step
     lo, hi = _find_breaks2(J, ntasks)
     _do_sweep2!(I, J, V, prm, colptr, rowval, nzval, lo, hi, ntasks)
     return S
