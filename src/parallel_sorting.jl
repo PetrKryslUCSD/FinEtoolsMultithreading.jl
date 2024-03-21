@@ -1,8 +1,8 @@
 module PQuickSort
 
-const SEQ_THRESH = 2^17
+using LinearAlgebra
 
-@noinline function _partition!(A, perm, pivot, left,right)
+@inline function _partition!(A, perm, pivot, left,right)
     @inbounds while left <= right
         while A[left] < pivot
             left += 1
@@ -28,19 +28,46 @@ function quicksortperm!(A, perm, i=1, j=length(A))
     end
 end
 
-function pquicksortperm!(A, perm, i=1, j=length(A))
-    if j-i <= SEQ_THRESH
+function __pquicksortperm!(A, perm, i, j, task)
+    if task <= 0
         quicksortperm!(A, perm, i, j)
         return
     end
     left, right = _partition!(A, perm, A[(j+i) >>> 1], i, j)
-    t = Threads.@spawn pquicksortperm!(A, perm, $i, $right)
-    pquicksortperm!(A, perm, left, j)
+    t = Threads.@spawn __pquicksortperm!(A, perm, $i, $right, task - 1)
+    __pquicksortperm!(A, perm, left, j, task - 1)
     wait(t)
-    # Threads.@threads for w in  ((i, right), (left, j))
-    #     pquicksortperm!(A, perm, w[1], w[2])
-    # end
     return
 end
 
+# This has the same order of the arguments as the built in sortperm! 
+function pquicksortperm!(perm, A, ntasks = Threads.nthreads())
+    __pquicksortperm!(A, perm, 1, length(A), ntasks)
+end
+
 end # module
+
+# using LinearAlgebra
+# using Main.PQuickSort
+# function g()
+#     N = 100000000
+#     # N = 10
+#     a = collect((N):-1:1)
+#     p = similar(a)
+#     @time sortperm!(p, a)
+#     # @show a, prm
+#     aref = sort(deepcopy(a))
+
+#     a = collect((N):-1:1)
+#     prm = collect(1:length(a))
+#     @time PQuickSort.pquicksortperm!(prm, a)
+#     # @show a, prm
+
+#     norm(a - sort(aref)) == 0
+
+    
+
+#     a = collect((N):-1:1)
+#     prm = collect(1:length(a))
+#     @time PQuickSort.pquicksortperm!(prm, a)
+# end
