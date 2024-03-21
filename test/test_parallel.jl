@@ -11,6 +11,7 @@ function test()
     t = 0.32
     nl, nt, nw = 12, 13, 22
     nl, nt, nw = 11, 21, 13
+    
     ntasks = 2
 
     fens, fes = H8block(L, W, t, nl, nw, nt)
@@ -340,6 +341,7 @@ function test()
     t = 0.32
     nl, nt, nw = 12, 33, 24
     nl, nt, nw = 12, 13, 22
+    nl, nt, nw = 2, 3, 2
     ntasks = 2
 
     fens, fes = H8block(L, W, t, nl, nw, nt)
