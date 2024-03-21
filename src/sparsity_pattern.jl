@@ -10,7 +10,7 @@ function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     end
     bl = p
     sort!(@view(dofs![s1:s1+bl-1]))
-    @inbounds for d = 2:size(dofnums, 2)
+    @inbounds for d in 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
         copy!(@view(dofs![s:s+bl-1]), @view(dofs![s1:s1+bl-1]))
     end
@@ -44,8 +44,7 @@ function _prepare_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
     start = _dof_block_lengths(IT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    # _acc_start_ptr!(start)
-    ThreadedScans.scan!(+, start)
+    ThreadedScans.scan!(+, start) # equivalent to _acc_start_ptr!(start)
     sumlen = start[end] - 1
     dofs = Vector{IT}(undef, sumlen) # This will get filled in later
     nzval = _zeros_via_calloc(FT, sumlen) # This needs to be initialized for future accumulation
