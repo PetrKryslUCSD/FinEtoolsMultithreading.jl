@@ -20,14 +20,14 @@ function parallel_make_matrix(
     kind = :CSC,
 )
     n2e = FENodeToFEMap(fes.conn, nnodes(u))
-    return parallel_make_matrix(
+    parallel_make_matrix(
         fes,
         u,
         n2e,
         crsubdom,
         matrixcomputation!,
         ntasks,
-        kind,
+        kind
     )
 end
 
@@ -54,8 +54,17 @@ function parallel_make_matrix(
     kind
 )
     @assert kind in [:CSC, :CSR]
-    assblr = fill_assembler(fes, u, crsubdom, matrixcomputation!, ntasks)
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K = sparse_symmetric_zero(u, n2n, kind)
-    return add_to_matrix!(K, assblr, ntasks)
+    K = sparse_symmetric_csc_pattern(u.dofnums, nents(u), n2n, zero(eltype(u.values)))
+    element_colors, unique_colors = element_coloring(fes, n2e)
+    decomposition = domain_decomposition(fes, ntasks, element_colors, unique_colors, crsubdom)
+    assembler = SysmatAssemblerSparsePatt(0.0)
+    associate_pattern(assembler, K)
+    parallel_matrix_assembly!(
+        assembler,
+        decomposition,
+        matrixcomputation!,
+        ntasks
+    )
+    return assembler._pattern
 end

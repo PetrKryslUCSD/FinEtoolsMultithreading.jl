@@ -52,32 +52,24 @@ function _prepare_arrays(IT, FT, map, dofnums)
 end
 
 """
-    sparse_symmetric_zero(u, n2n, kind = :CSC)
-
+    sparse_symmetric_csc_pattern(dofnums::Array{IT,2}, nrowscols, n2n, z = zero(Float64)) where {IT<:Integer}
+    
 Create symmetric sparse zero matrix (sparsity pattern).
 
 Uses the following data structures:
 ```
-    n2e = FENodeToFEMap(fes.conn, nnodes(u))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
 ```
 """
-function sparse_symmetric_zero(u, n2n, kind = :CSC)
-    @assert kind in [:CSC, :CSR]
-    @assert length(n2n.map) == size(u.dofnums, 1)
-    IT = eltype(u.dofnums)
-    FT = eltype(u.values)
-    nrowscols = nalldofs(u)
+function sparse_symmetric_csc_pattern(dofnums::Array{IT,2}, nrowscols, n2n, z = zero(Float64)) where {IT<:Integer}
+    @assert length(n2n.map) == size(dofnums, 1)
+    FT = typeof(z)
     # This is about an order of magnitude less expensive than the next step
-    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, u.dofnums)
+    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, dofnums)
     # This stops scaling for nthreads >= 32
-    @inbounds Base.Threads.@threads for n in axes(u.dofnums, 1)
-        _populate_with_dofs!(dofs, n, n2n.map[n], u.dofnums, start)
+    @inbounds Base.Threads.@threads for n in axes(dofnums, 1)
+        _populate_with_dofs!(dofs, n, n2n.map[n], dofnums, start)
     end
-    if kind == :CSC
-        K = SparseMatrixCSC(nrowscols, nrowscols, start, dofs, nzval)
-    elseif kind == :CSR
-        K = SparseMatricesCSR.SparseMatrixCSR{1}(nrowscols, nrowscols, start, dofs, nzval)
-    end
+    K = SparseMatrixCSC(nrowscols, nrowscols, start, dofs, nzval)
     return K
 end
