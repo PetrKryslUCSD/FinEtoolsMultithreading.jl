@@ -13,8 +13,6 @@ using ThreadedScans
 
 
 include("utilities.jl")
-# include("parallel_sorting.jl")
-# using .PQuickSort
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
 include("domain_decomposition.jl")
