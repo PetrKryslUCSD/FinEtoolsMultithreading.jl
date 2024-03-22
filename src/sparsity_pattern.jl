@@ -10,7 +10,7 @@ function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     end
     bl = p
     sort!(@view(dofs![s1:s1+bl-1]))
-    @inbounds for d in 2:size(dofnums, 2)
+    @inbounds for d = 2:size(dofnums, 2)
         s = start[dofnums[n, d]]
         copy!(@view(dofs![s:s+bl-1]), @view(dofs![s1:s1+bl-1]))
     end
@@ -61,7 +61,12 @@ Uses the following data structures:
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
 ```
 """
-function sparse_symmetric_csc_pattern(dofnums::Array{IT,2}, nrowscols, n2n, z = zero(Float64)) where {IT<:Integer}
+function sparse_symmetric_csc_pattern(
+    dofnums::Array{IT,2},
+    nrowscols,
+    n2n,
+    z = zero(Float64),
+) where {IT<:Integer}
     @assert length(n2n.map) == size(dofnums, 1)
     FT = typeof(z)
     # This is about an order of magnitude less expensive than the next step

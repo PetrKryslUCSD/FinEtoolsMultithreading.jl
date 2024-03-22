@@ -26,16 +26,17 @@ function parallel_make_matrix(
     ntasks = Threads.nthreads(),
     kind = :CSC,
 )
-    n2e = FENodeToFEMap(fes.conn, nnodes(u))
+    n2e = FENodeToFEMap(fes, nnodes(u))
     parallel_make_matrix(
-        fes,
-        u,
-        n2e,
-        createsubdomain,
-        matrixcomputation!,
-        ntasks,
-        kind
-    )
+        fes, 
+        u.dofnums, 
+        nalldofs(u), 
+        eltype(u.values), 
+        n2e, 
+        createsubdomain, 
+        matrixcomputation!, 
+        ntasks, 
+        kind)
 end
 
 """
@@ -50,28 +51,28 @@ end
     )
 
 Assemble a sparse matrix.
+
+1. Make the sparse pattern and create a sparse CSX matrix with all values zero;
+1. Compute the matrix entries as a COO sparse format;
+2. Construct some incidence relation, and use them to
+4. Add the values from the COO list to the CSX sparse matrix.
 """
 function parallel_make_matrix(
     fes,
-    u,
+    dofnums,
+    ndofs,
+    FT,
     n2e,
     createsubdomain,
     matrixcomputation!,
     ntasks,
-    kind
+    kind,
 )
     @assert kind in [:CSC, :CSR]
-    n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K = sparse_symmetric_csc_pattern(u.dofnums, nents(u), n2n, zero(eltype(u.values)))
-    element_colors, unique_colors = element_coloring(fes, n2e)
-    decomposition = domain_decomposition(fes, ntasks, element_colors, unique_colors, createsubdomain)
-    assembler = SysmatAssemblerSparsePatt(0.0)
-    associate_pattern(assembler, K)
-    K = parallel_matrix_assembly!(
-        assembler,
-        decomposition,
-        matrixcomputation!,
-        ntasks
-    )
+    n2n = FENodeToNeighborsMap(n2e, fes)
+    K_pattern = sparse_symmetric_csc_pattern(dofnums, ndofs, n2n, zero(FT))
+    coloring = element_coloring(fes, n2e)
+    decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
+    K = parallel_matrix_assembly!(SysmatAssemblerSparsePatt(K_pattern), decomposition, matrixcomputation!, ntasks)
     return K
 end

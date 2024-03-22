@@ -1,5 +1,5 @@
 """
-    domain_decomposition(fes, ntasks, element_colors, unique_colors, createsubdomain)
+    domain_decomposition(fes, coloring, createsubdomain, ntasks = Threads.nthreads())
 
 Create finite element machines for the subdomains.
 
@@ -24,7 +24,8 @@ created using the function `createsubdomain`.
 The matrix is created by going sequentially through the unique colors
 and then in parallel execute all the finite element machines for that color.
 """
-function domain_decomposition(fes, ntasks, element_colors, unique_colors, createsubdomain)
+function domain_decomposition(fes, coloring, createsubdomain, ntasks = Threads.nthreads())
+    element_colors, unique_colors = coloring
     decomposition = []
     Threads.@threads for color in unique_colors
         color_list = findall(x -> x == color, element_colors)
