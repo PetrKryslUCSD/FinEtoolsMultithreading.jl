@@ -27,17 +27,23 @@ and then in parallel execute all the finite element machines for that color.
 function domain_decomposition(fes, coloring, createsubdomain, ntasks = Threads.nthreads())
     element_colors, unique_colors = coloring
     decomposition = []
-    Threads.@threads for color in unique_colors
-        color_list = findall(x -> x == color, element_colors)
-        subsetfes = subset(fes, color_list)
-        chks = chunks(1:count(subsetfes), ntasks)
-        sds = []
-        resize!(sds, length(chks))
-        for k in 1:length(chks)
-            (ch, j) = chks[k]
-            sds[k] = createsubdomain(subset(subsetfes, ch))
-        end
-        push!(decomposition, typeof(sds[1])[sds[k] for k in eachindex(sds)])
+    resize!(decomposition, length(unique_colors))
+    Threads.@threads for i in eachindex(unique_colors)
+        decomposition[i] =
+            _make_femms(fes, ntasks, createsubdomain, element_colors, unique_colors[i])
     end
     return decomposition
+end
+
+function _make_femms(fes, ntasks, createsubdomain, element_colors, color)
+    color_list = findall(x -> x == color, element_colors)
+    subsetfes = subset(fes, color_list)
+    chks = chunks(1:count(subsetfes), ntasks)
+    sds = []
+    resize!(sds, length(chks))
+    for k = 1:length(chks)
+        (ch, j) = chks[k]
+        sds[k] = createsubdomain(subset(subsetfes, ch))
+    end
+    return typeof(sds[1])[sds[k] for k in eachindex(sds)]
 end
