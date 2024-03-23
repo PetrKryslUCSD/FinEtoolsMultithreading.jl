@@ -8,6 +8,7 @@ module FinEtoolsMultithreading
 using SparseArrays
 using ChunkSplitters
 using SparseMatricesCSR
+using LinearAlgebra
 using FinEtools
 using ThreadedScans
 
