@@ -12,12 +12,13 @@ using LinearAlgebra
 using FinEtools
 using ThreadedScans
 
-
 include("utilities.jl")
+include("FENodeToNeighborsMapModule.jl")
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
 include("domain_decomposition.jl")
 include("high_level.jl")
+
 
 module Exports
 # The high level interface
@@ -28,6 +29,9 @@ using ..FinEtoolsMultithreading: parallel_matrix_assembly!
 export parallel_matrix_assembly!
 using ..FinEtoolsMultithreading: sparse_symmetric_csc_pattern
 export sparse_symmetric_csc_pattern
+using ..FENodeToNeighborsMapModule: FENodeToNeighborsMap
+# Exported: type for maps from nodes to connected nodes
+export FENodeToNeighborsMap
 end
 
 # Enable LSP look up in test modules
