@@ -27,7 +27,7 @@ function eltype(self::TPATT) where {TPATT<:SysmatAssemblerSparsePatt}
     eltype(self._pattern.nzval)
 end
 
-function SysmatAssemblerSparsePatt(pattern::TPATT) where {TPATT<:SparseMatrixCSC} 
+function SysmatAssemblerSparsePatt(pattern::TPATT) where {TPATT<:SparseMatrixCSC}
     return SysmatAssemblerSparsePatt(pattern, false, false)
 end
 
@@ -183,25 +183,31 @@ end
 
 """
     parallel_matrix_assembly!(
-        assembler,
+        assmblr,
         decomposition,
-        matrixcomputation!::F,
-        ntasks = Threads.nthreads(),
+        matrixcomputation!::F
     ) where {F<:Function}
 
 Execute the assembly in parallel.
+
+The decomposition is a vector of vector of FEMMs.
+As many tasks as there are FEMMs at any level are spawned.
 """
 function parallel_matrix_assembly!(
-    assembler,
+    assmblr,
     decomposition,
     matrixcomputation!::F,
-    ntasks = Threads.nthreads(),
 ) where {F<:Function}
     for d in decomposition
         femms = d
-        Threads.@threads for j in eachindex(femms)
-            matrixcomputation!(femms[j], assembler)
+        Threads.@sync begin
+            for j in eachindex(femms)
+                Threads.@spawn matrixcomputation!(femms[j], assmblr)
+            end
         end
+        # Threads.@threads for j in eachindex(femms)
+        #     matrixcomputation!(femms[j], assmblr)
+        # end
     end
-    return assembler._pattern
+    return assmblr._pattern
 end
