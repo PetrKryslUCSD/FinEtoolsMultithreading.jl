@@ -1,7 +1,7 @@
 
 module mmmmaps1
 using FinEtools
-using FinEtoolsMultithreading: FENodeToNeighborsMap
+using FinEtoolsMultithreading.Exports
 using Test
 function test(n = 20)
     W, L, H = 3.5, 7.1, 9.3
