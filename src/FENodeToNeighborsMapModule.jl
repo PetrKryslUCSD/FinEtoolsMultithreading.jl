@@ -20,9 +20,7 @@ function __collect_unique_node_neighbors(ellist, conn, npe)
             p += 1
         end
     end
-    sort!(nodes)
-    unique!(nodes)
-    return nodes
+    return unique!(sort!(nodes))
 end
 
 function _make_map(n2e, conn)
