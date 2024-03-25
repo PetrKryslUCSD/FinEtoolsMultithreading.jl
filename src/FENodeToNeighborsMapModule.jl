@@ -17,7 +17,7 @@ function _unique_node_neighbors(ellist, conn, npe)
     @inbounds for i in ellist
         for k in conn[i]
             nodes[p] = k
-            p += 1
+                p += 1
         end
     end
     return unique!(sort!(nodes))
@@ -41,7 +41,7 @@ elements.
 
 !!! note
 
-    Self references are included (each node is connected to itself).
+    Self references are included (a node is its own neighbor).
 """
 struct FENodeToNeighborsMap{IT}
     # Map as a vector of vectors.
@@ -54,7 +54,7 @@ end
         conn::Vector{NTuple{N,IT}},
     ) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
 
-    Map from finite element nodes to the nodes connected to them by elements.
+Map from finite element nodes to the nodes connected to them by elements.
 
 - `conns` = connectivities as a vector of tuples
 - `nmax` = largest possible node number

@@ -1,5 +1,43 @@
-
 module mmmmaps1
+using FinEtools
+using FinEtoolsMultithreading.Exports
+using Test
+function test(n = 2)
+    W, L, H = 3.5, 7.1, 9.3
+    fens, fes = H8block(W, L, H, n, n, n)
+ 
+    n2e = FENodeToFEMap(fes.conn, count(fens))
+    @show e2e = FEElemToNeighborsMap(n2e, fes.conn)
+    
+    found = true
+    for i in eachindex(n2e.map)
+        for k in n2e.map[i]
+            for m in n2e.map[i]
+                found = found && ((k in e2e.map[m]) && (m in e2e.map[k]))
+            end
+        end
+    end
+    @test found
+
+    e2e = FEElemToNeighborsMap(n2e, fes)
+    
+    found = true
+    for i in eachindex(n2e.map)
+        for k in n2e.map[i]
+            for m in n2e.map[i]
+                found = found && ((k in e2e.map[m]) && (m in e2e.map[k]))
+            end
+        end
+    end
+    @test found
+end
+test(2)
+test(17)
+test(18)
+nothing
+end
+
+module mmmmaps2
 using FinEtools
 using FinEtoolsMultithreading.Exports
 using Test
