@@ -70,11 +70,11 @@ function sparse_symmetric_csc_pattern(
     @assert length(n2n.map) == size(dofnums, 1)
     FT = typeof(z)
     # This is about an order of magnitude less expensive than the next step
-    start, dofs, nzval = _prepare_arrays(IT, FT, n2n.map, dofnums)
+    colptr, rowval, nzval = _prepare_arrays(IT, FT, n2n.map, dofnums)
     # This stops scaling for nthreads >= 32
     @inbounds Base.Threads.@threads for n in axes(dofnums, 1)
-        _populate_with_dofs!(dofs, n, n2n.map[n], dofnums, start)
+        _populate_with_dofs!(rowval, n, n2n.map[n], dofnums, colptr)
     end
-    K = SparseMatrixCSC(nrowscols, nrowscols, start, dofs, nzval)
+    K = SparseMatrixCSC(nrowscols, nrowscols, colptr, rowval, nzval)
     return K
 end
