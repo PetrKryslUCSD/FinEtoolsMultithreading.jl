@@ -17,7 +17,7 @@ function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
     return nothing
 end
 
-function _dof_block_lengths(IT, map, dofnums)
+function _row_block_lengths(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
     lengths = _zeros_via_calloc(IT, total_dofs + 1)
@@ -42,13 +42,13 @@ end
 
 function _prepare_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
-    start = _dof_block_lengths(IT, map, dofnums)
+    colptr = _row_block_lengths(IT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
-    ThreadedScans.scan!(+, start) # equivalent to _acc_start_ptr!(start)
-    sumlen = start[end] - 1
-    dofs = Vector{IT}(undef, sumlen) # This will get filled in later
+    ThreadedScans.scan!(+, colptr) # equivalent to _acc_start_ptr!(start)
+    sumlen = colptr[end] - 1
+    rowval = Vector{IT}(undef, sumlen) # This will get filled in later
     nzval = _zeros_via_calloc(FT, sumlen) # This needs to be initialized for future accumulation
-    return start, dofs, nzval
+    return colptr, rowval, nzval
 end
 
 """

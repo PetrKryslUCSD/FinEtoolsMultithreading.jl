@@ -185,29 +185,27 @@ end
     parallel_matrix_assembly!(
         assmblr,
         decomposition,
-        matrixcomputation!::F
+        matrixupdt!::F
     ) where {F<:Function}
 
 Execute the assembly in parallel.
 
 The decomposition is a vector of vector of FEMMs.
 As many tasks as there are FEMMs at any level are spawned.
+
+The function `matrixupdt!` updates the assembler.
 """
 function parallel_matrix_assembly!(
     assmblr,
     decomposition,
-    matrixcomputation!::F,
+    matrixupdt!::F,
 ) where {F<:Function}
-    for d in decomposition
-        femms = d
+    for femms in decomposition
         Threads.@sync begin
-            for j in eachindex(femms)
-                Threads.@spawn matrixcomputation!(femms[j], assmblr)
+            for femm in femms
+                Threads.@spawn matrixupdt!(femm, assmblr)
             end
         end
-        # Threads.@threads for j in eachindex(femms)
-        #     matrixcomputation!(femms[j], assmblr)
-        # end
     end
     return assmblr._pattern
 end
