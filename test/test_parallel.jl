@@ -7,7 +7,7 @@ function test(n = 2)
     fens, fes = H8block(W, L, H, n, n, n)
  
     n2e = FENodeToFEMap(fes.conn, count(fens))
-    @show e2e = FEElemToNeighborsMap(n2e, fes.conn)
+    e2e = FEElemToNeighborsMap(n2e, fes.conn)
     
     found = true
     for i in eachindex(n2e.map)
@@ -44,15 +44,7 @@ using Test
 function test(n = 20)
     W, L, H = 3.5, 7.1, 9.3
     fens, fes = H8block(W, L, H, n, n, n)
-    # println("Number of elements: $(count(fes))")
-    
-    geom = NodalField(fens.xyz)
-    u = NodalField(zeros(size(fens.xyz, 1), 3)) # displacement field
-
-    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
-
-    numberdofs!(u)
-
+   
     # println("nalldofs(u) = $(nalldofs(u))").#
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)

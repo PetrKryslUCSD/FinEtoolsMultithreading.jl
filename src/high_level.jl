@@ -75,7 +75,8 @@ function parallel_make_matrix(
     @assert kind in [:CSC, :CSR]
     n2n = FENodeToNeighborsMap(n2e, fes)
     K_pattern = sparse_symmetric_csc_pattern(dofnums, ndofs, n2n, zero(FT))
-    coloring = element_coloring(fes, n2e)
+    # e2e = FEElemToNeighborsMap(n2e, fes)
+    coloring = FinEtools.MeshModificationModule.element_coloring(fes, n2e)
     decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
     K = parallel_matrix_assembly!(
         SysmatAssemblerSparsePatt(K_pattern),
