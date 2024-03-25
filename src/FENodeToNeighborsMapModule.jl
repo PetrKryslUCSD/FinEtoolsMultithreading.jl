@@ -20,19 +20,18 @@ function __collect_unique_node_neighbors(ellist, conn, npe)
             p += 1
         end
     end
-    sort!(nodes)
     unique!(nodes)
     return nodes
 end
 
-function _unique_nodes(n2e, conn)
+function _make_map(n2e, conn)
     npe = length(conn[1])
     empt = eltype(n2e.map[1])[]
-    unique_nodes = fill(empt, length(n2e.map))
+    map = fill(empt, length(n2e.map))
     Base.Threads.@threads for i in 1:length(n2e.map) # run this in PARALLEL
-        unique_nodes[i] = __collect_unique_node_neighbors(n2e.map[i], conn, npe)
+        map[i] = __collect_unique_node_neighbors(n2e.map[i], conn, npe)
     end
-    return unique_nodes
+    return map
 end
 
 """
@@ -65,7 +64,7 @@ function FENodeToNeighborsMap(
     n2e::N2EMAP,
     conn::Vector{NTuple{N,IT}},
 ) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
-    return FENodeToNeighborsMap(_unique_nodes(n2e, conn))
+    return FENodeToNeighborsMap(_make_map(n2e, conn))
 end
 
 """
@@ -82,7 +81,7 @@ function FENodeToNeighborsMap(
     n2e::N2EMAP,
     fes::FE,
 ) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
-    return FENodeToNeighborsMap(_unique_nodes(n2e, fes.conn))
+    return FENodeToNeighborsMap(_make_map(n2e, fes.conn))
 end
 
 end
