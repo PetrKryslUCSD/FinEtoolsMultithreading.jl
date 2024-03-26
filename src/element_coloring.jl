@@ -35,14 +35,15 @@ function element_coloring!(element_colors, unique_colors, color_counts, e2emap, 
     color_used = fill(zero(eltype(element_colors)), length(unique_colors))
     for e in ellist_iterator
         if element_colors[e] == 0
-            color_used .= 0
+            color_used .= 0; nchanges = 0
             for oe in e2emap[e]
                 c = element_colors[oe]
                 if c > 0
                     color_used[c] += 1
+                    nchanges += 1
                 end
             end
-            if sum(color_used) == 0
+            if nchanges == 0
                 c = __find_of_min_count(color_used, color_counts)
                 element_colors[e] = unique_colors[c]
                 color_counts[c] += 1
