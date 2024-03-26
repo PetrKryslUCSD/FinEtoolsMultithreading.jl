@@ -51,10 +51,9 @@ function element_coloring!(element_colors, unique_colors, color_counts, e2emap, 
                 if __find_first_avail(color_used) == 0
                     added = maximum(unique_colors) + 1
                     push!(unique_colors, added)
-                    push!(color_counts, 0)
+                    push!(color_counts, 1)
                     push!(color_used, 0)
                     element_colors[e] = added
-                    color_counts[c] += 1
                 else
                     c = __find_of_min_count(color_used, color_counts)
                     element_colors[e] = unique_colors[c]
