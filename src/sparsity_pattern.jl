@@ -1,18 +1,18 @@
 # This is about twenty percent faster than the original version.
-function _populate_with_dofs!(dofs!, n, neighbors, dofnums, start)
-    s1 = start[dofnums[n, 1]]
+function _populate_with_dofs!(rowval, n, nghbrs, dofnums, colptr)
+    s1 = colptr[dofnums[n, 1]]
     p = 0
-    @inbounds for k in neighbors
+    @inbounds for k in nghbrs
         for d in axes(dofnums, 2)
-            dofs![s1+p] = dofnums[k, d]
+            rowval[s1+p] = dofnums[k, d]
             p += 1
         end
     end
     bl = p
-    sort!(@view(dofs![s1:s1+bl-1]))
-    @inbounds for d = 2:size(dofnums, 2)
-        s = start[dofnums[n, d]]
-        copy!(@view(dofs![s:s+bl-1]), @view(dofs![s1:s1+bl-1]))
+    sort!(@view(rowval[s1:s1+bl-1]))
+    @inbounds for d in 2:size(dofnums, 2)
+        s = colptr[dofnums[n, d]]
+        copy!(@view(rowval[s:s+bl-1]), @view(rowval[s1:s1+bl-1]))
     end
     return nothing
 end
@@ -20,7 +20,7 @@ end
 function _row_block_lengths(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
-    lengths = _zeros_via_calloc(IT, total_dofs + 1)
+    lengths = Vector{IT}(undef, total_dofs + 1)
     lengths[1] = 1
     @inbounds Threads.@threads for k in eachindex(map)
         kl = length(map[k]) * nd
@@ -74,7 +74,6 @@ function sparse_symmetric_csc_pattern(
     # This stops scaling for nthreads >= 32
     @inbounds Base.Threads.@threads for n in axes(dofnums, 1)
         _populate_with_dofs!(rowval, n, n2n.map[n], dofnums, colptr)
-    end
-    K = SparseMatrixCSC(nrowscols, nrowscols, colptr, rowval, nzval)
-    return K
+    end 
+    return SparseMatrixCSC(nrowscols, nrowscols, colptr, rowval, nzval)
 end
