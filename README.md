@@ -15,3 +15,7 @@ Currently, sparse matrix operators can be assembled in parallel on multiple thre
 ## Examples
 
 Check out the [`examples/README.md`](examples/README.md) documentation.
+
+## References
+
+A [paper](https://dx.doi.org/10.2139/ssrn.4775111) has been submitted and is under review.
