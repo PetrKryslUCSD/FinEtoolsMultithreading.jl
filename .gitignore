@@ -24,3 +24,7 @@ docs/site/
 ./Manifest.toml
 
 settings.json
+
+*.json
+*.vtk
+*.vtu
