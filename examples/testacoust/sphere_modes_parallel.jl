@@ -211,7 +211,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("Assembly STIFFNESS total = $(stiffness_times["TotalAssembly"]) [s]")
 
     GC.enable(true)
-
+ 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
         n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_parallel-timing-parallel-stiffness-nth=$(ntasks)"), "json")
