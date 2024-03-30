@@ -13,12 +13,23 @@ Assemble a sparse matrix.
 Either a `:CSC` matrix or a `:CSR` matrix is created. We shall refer to this
 matrix as a CSX matrix. The process is:
 
-1. Construct the incidence relation node-to-neighbors.
-2. Make the sparse pattern and create a sparse CSX matrix with all values zero.
-3. Construct the incidence relation element-to-neighbors.
-4. Compute element coloring.
-5. Set up domain decomposition.
-6. Compute and assemble the matrix entries.
+1. Construct the incidence relation node-to-elements.
+2. Construct the incidence relation node-to-neighbors.
+3. Make the sparse pattern and create a sparse CSX matrix with all values zero.
+4. Construct the incidence relation element-to-neighbors.
+5. Compute element coloring.
+6. Set up domain decomposition.
+7. Compute and assemble the matrix entries.
+
+Here, `createsubd` could be
+```
+(fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material)
+```
+and `matrixupdt!` could be
+```
+(femm, assmblr) -> acousticstiffness(femm, assmblr, geom, P)
+```
+
 """
 function parallel_make_matrix(
     fes,
