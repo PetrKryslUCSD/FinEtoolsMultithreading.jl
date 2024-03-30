@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "921c29a5ce70ee70beb0f4cd75648b864f52d50c"
+project_hash = "30d1f4bd2ff9d667eefdcfbea8bdf74c851e91d3"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -171,6 +171,12 @@ deps = ["ChunkSplitters", "DataDrop", "DelimitedFiles", "HDF5", "LinearAlgebra",
 git-tree-sha1 = "e75fcdbaeef53ffaea7354caf9bdeb0b2af7bb6f"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 version = "8.0.12"
+
+[[deps.FinEtoolsAcoustics]]
+deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "d1e6849fd47a465f475cfbe4bd8495d7b0a35648"
+uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
+version = "4.0.0"
 
 [[deps.FinEtoolsDeforLinear]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "SuiteSparse", "Test"]
