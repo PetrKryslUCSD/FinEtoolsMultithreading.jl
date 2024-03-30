@@ -2,10 +2,7 @@ module sphere_modes_parallel
 using FinEtools
 using FinEtools.AlgoBaseModule: matrix_blocked
 using FinEtoolsAcoustics
-using FinEtoolsMultithreading
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, 
-          parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using FinEtools.MeshExportModule
 using LinearAlgebra
 using Arpack: eigs
@@ -50,9 +47,9 @@ Wavenumber*R                    Multiplicity
 # Sphere of radius $(R), in WATER.
 # Tetrahedral T4 mesh.
 # Exact fundamental frequency: $(c/2/R)
-function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
+function run(N = 2, ntasks = Threads.nthreads(), assembly_only = false)
+    times = Dict{String, Vector{Float64}}()
     
-
     rho = 1000 * phun("kg/m^3")# mass density
     c = 1500.0 * phun("m/s")# sound speed
     bulk = c^2 * rho
@@ -82,7 +79,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
         fes,
         [-1.0, 0.0, 0.0],
         [0.0, 0.0, 0.0],
-        renumb=renumb,
+        renumb = renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
@@ -91,7 +88,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
         fes,
         [0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0],
-        renumb=renumb,
+        renumb = renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
@@ -100,7 +97,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
         fes,
         [0.0, 0.0, -1.0],
         [0.0, 0.0, 0.0],
-        renumb=renumb,
+        renumb = renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
@@ -113,130 +110,62 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     setebc!(P, connectednodes(bfes))
     numberdofs!(P)
 
-    mass_times = Dict{String,Vector{Float64}}()
-
     t1 = time()
     n2e = FENodeToFEMap(fes.conn, nnodes(P))
-    mass_times["FENodeToFEMap"] = [time() - t1]
-    println("Make node to element map = $(mass_times["FENodeToFEMap"]) [s]")
+    times["FENodeToFEMap"] = [time() - t1]
+    println("Make node to element map = $(times["FENodeToFEMap"]) [s]")
 
-    material = MatAcoustFluid(bulk, rho)
+   material =  MatAcoustFluid(bulk, rho)
 
-    GC.enable(false)
-
-    t0 = time()
-
-    t1 = time()
-    e2e = FEElemToNeighborsMap(n2e, fes)
-    mass_times["FEElemToNeighborsMap"] = [time() - t1]
-    println("    Make element to neighbor map = $(mass_times["FEElemToNeighborsMap"]) [s]")
-
-    t1 = time()
-    coloring = FinEtoolsMultithreading.element_coloring(fes, e2e)
-    mass_times["ElementColors"] = [time() - t1]
-    println("    Compute element colors = $(mass_times["ElementColors"]) [s]")
-
-    t1 = time()
-    n2n = FENodeToNeighborsMap(n2e, fes)
-    mass_times["FENodeToNeighborsMap"] = [time() - t1]
-    println("    Make node to neighbor map = $(mass_times["FENodeToNeighborsMap"]) [s]")
-
-    t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(P.dofnums, nalldofs(P), n2n, zero(eltype(P.values)))
-    mass_times["SparsityPattern"] = [time() - t1]
-    println("    Sparsity pattern = $(mass_times["SparsityPattern"]) [s]")
-
-    t1 = time()
-    decomposition = domain_decomposition(fes, coloring,
-        (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material), ntasks)
-    mass_times["DomainDecomposition"] = [time() - t1]
-    println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
-
-    t1 = time()
-    K = parallel_matrix_assembly!(
-        SysmatAssemblerSparsePatt(K_pattern),
-        decomposition,
+   t1 = time()
+    Ma = parallel_make_matrix(
+        fes,
+        P.dofnums,
+        nalldofs(P),
+        eltype(P.values),
+        n2e,
+        (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material),
         (femm, assmblr) -> acousticmass(femm, assmblr, geom, P),
+        ntasks,
+        :CSC
     )
-    mass_times["AssemblyOfValues"] = [time() - t1]
-    println("    Add to matrix = $(mass_times["AssemblyOfValues"]) [s]")
-
-    mass_times["TotalAssembly"] = [time() - t0]
-    println("Assembly MASS total = $(mass_times["TotalAssembly"]) [s]")
-
-    GC.enable(true)
-
-    GC.enable(false)
-
-    stiffness_times = Dict{String,Vector{Float64}}()
-    
-    t0 = time()
+    # Ma = acousticmass(femm, geom, P)
+    times["AssembleMass"] = [time() - t1]
+    println("Assemble mass = $(times["AssembleMass"]) [s]")
 
     t1 = time()
-    e2e = FEElemToNeighborsMap(n2e, fes)
-    stiffness_times["FEElemToNeighborsMap"] = [time() - t1]
-    println("    Make element to neighbor map = $(stiffness_times["FEElemToNeighborsMap"]) [s]")
-
-    t1 = time()
-    coloring = FinEtoolsMultithreading.element_coloring(fes, e2e)
-    stiffness_times["ElementColors"] = [time() - t1]
-    println("    Compute element colors = $(stiffness_times["ElementColors"]) [s]")
-
-    t1 = time()
-    n2n = FENodeToNeighborsMap(n2e, fes)
-    stiffness_times["FENodeToNeighborsMap"] = [time() - t1]
-    println("    Make node to neighbor map = $(stiffness_times["FENodeToNeighborsMap"]) [s]")
-
-    t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(P.dofnums, nalldofs(P), n2n, zero(eltype(P.values)))
-    stiffness_times["SparsityPattern"] = [time() - t1]
-    println("    Sparsity pattern = $(stiffness_times["SparsityPattern"]) [s]")
-
-    t1 = time()
-    decomposition = domain_decomposition(fes, coloring,
-        (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material), ntasks)
-    stiffness_times["DomainDecomposition"] = [time() - t1]
-    println("    Domain decomposition = $(stiffness_times["DomainDecomposition"]) [s]")
-
-    t1 = time()
-    K = parallel_matrix_assembly!(
-        SysmatAssemblerSparsePatt(K_pattern),
-        decomposition,
+    Ka = parallel_make_matrix(
+        fes,
+        P.dofnums,
+        nalldofs(P),
+        eltype(P.values),
+        n2e,
+        (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material),
         (femm, assmblr) -> acousticstiffness(femm, assmblr, geom, P),
+        ntasks,
+        :CSC
     )
-    stiffness_times["AssemblyOfValues"] = [time() - t1]
-    println("    Add to matrix = $(stiffness_times["AssemblyOfValues"]) [s]")
-
-    stiffness_times["TotalAssembly"] = [time() - t0]
-    println("Assembly STIFFNESS total = $(stiffness_times["TotalAssembly"]) [s]")
-
-    GC.enable(true)
+    # Ka = acousticstiffness(femm, geom, P)
+    times["AssembleStiffness"] = [time() - t1]
+    println("Assemble stiffness = $(times["AssembleStiffness"]) [s]")
 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
-        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_parallel-timing-parallel-stiffness-nth=$(ntasks)"), "json")
+        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_parallel-timing-parallel-nth=$(ntasks)"), "json")
         if isfile(n)
             storedtimes = DataDrop.retrieve_json(n)
             for k in keys(storedtimes)
-                stiffness_times[k] = cat(stiffness_times[k], storedtimes[k], dims=1)
+                times[k] = cat(times[k], storedtimes[k], dims = 1)
             end
         end
-        DataDrop.store_json(n, stiffness_times)
-        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_parallel-timing-parallel-mass-nth=$(ntasks)"), "json")
-        if isfile(n)
-            storedtimes = DataDrop.retrieve_json(n)
-            for k in keys(storedtimes)
-                mass_times[k] = cat(mass_times[k], storedtimes[k], dims=1)
-            end
-        end
-        DataDrop.store_json(n, mass_times)
+        DataDrop.store_json(n, times)
         return
     end
 
     Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
     Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
 
-    d, v, nconv = eigs(Ka_ff, Ma_ff; nev=neigvs, which=:SM, explicittransform=:none)
+    d, v, nconv = eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
     v = real.(v)
     fs = real(sqrt.(complex(d))) ./ (2 * pi)
     # @info("Frequencies (1:5): $(fs[1:5]) [Hz]")
@@ -254,7 +183,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
         connasarray(fes),
         geom.values,
         FinEtools.MeshExportModule.VTK.H8;
-        scalars=scalarllist,
+        scalars = scalarllist,
     )
     # @async run(`"paraview.exe" $File`)
 
