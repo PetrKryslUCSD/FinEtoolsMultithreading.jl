@@ -74,7 +74,7 @@ function startassembly!(
     return self
 end
 
-function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) where {IT}
+@inline function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) where {IT}
     @inbounds while left <= right # Generating the middle element position 
         mid = fld((left + right), 2) # If element > mid, then it can only be present in right subarray
         if array[mid] < target
@@ -88,13 +88,6 @@ function _binary_search(array::Array{IT,1}, target::IT, left::IT, right::IT) whe
     return 0
 end
 
-function _updroworcol!(nzval, i, v, st, fi, r_or_c)
-    k = _binary_search(r_or_c, i, st, fi)
-    if k > 0
-        nzval[k] += v
-    end
-end
-
 """
     assemble!(
         self::SysmatAssemblerSparsePatt,
@@ -104,6 +97,9 @@ end
     ) where {MT, IT}
 
 Assemble a rectangular matrix.
+
+Assembly of a rectangular matrix. The method assembles a rectangular matrix
+using the two vectors of equation numbers for the rows and columns.
 """
 function assemble!(
     self::TPATT,
@@ -111,29 +107,21 @@ function assemble!(
     dofnums_row::CIT,
     dofnums_col::CIT,
 ) where {TPATT<:SysmatAssemblerSparsePatt,MBT,CIT}
-    # Assembly of a rectangular matrix.
-    # The method assembles a rectangular matrix using the two vectors of
-    # equation numbers for the rows and columns.
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
     size(mat) == (nrows, ncolumns) || error("Wrong size of matrix")
     row_nalldofs, col_nalldofs = size(self._pattern)
-    for j = 1:ncolumns
+    @inbounds for j = 1:ncolumns
         dj = dofnums_col[j]
-        dj < 1 && error("Column degree of freedom < 1")
-        dj > col_nalldofs && error("Column degree of freedom > size")
+        # dj < 1 && error("Column degree of freedom < 1")
+        # dj > col_nalldofs && error("Column degree of freedom > size")
         for i = 1:nrows
             di = dofnums_row[i]
-            di < 1 && error("Row degree of freedom < 1")
-            di > row_nalldofs && error("Row degree of freedom > size")
-            _updroworcol!(
-                self._pattern.nzval,
-                di,
-                mat[i, j],
-                self._pattern.colptr[dj],
-                self._pattern.colptr[dj+1] - 1,
-                self._pattern.rowval,
-            )
+            # di < 1 && error("Row degree of freedom < 1")
+            # di > row_nalldofs && error("Row degree of freedom > size")
+            k = _binary_search(self._pattern.rowval, di,
+                self._pattern.colptr[dj], self._pattern.colptr[dj+1] - 1)
+            self._pattern.nzval[k] += mat[i, j]
         end
     end
     return self
