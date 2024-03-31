@@ -119,37 +119,29 @@ function run(N = 2, assembly_only = false)
 
    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
 
-   t1 = time()
-    # Ma = parallel_make_matrix(
-    #     fes,
-    #     P.dofnums,
-    #     nalldofs(P),
-    #     eltype(P.values),
-    #     n2e,
-    #     (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material),
-    #     (femm, assmblr) -> acousticmass(femm, assmblr, geom, P),
-    #     ntasks,
-    #     :CSC
-    # )
-    Ma = acousticmass(femm, geom, P)
-    times["AssembleMass"] = [time() - t1]
-    println("Assemble mass = $(times["AssembleMass"]) [s]")
+    t1 = time()
+    assmblr = SysmatAssemblerSparse(0.0)
+    setnomatrixresult(assmblr, true)
+    acousticmass(femm, assmblr, geom, P)
+    times["AssembleCOOMass"] = [time() - t1]
+    println("Assemble mass = $(times["AssembleCOOMass"]) [s]")
+    t1 = time()
+    setnomatrixresult(assmblr, false)
+    Ma = makematrix!(assmblr)
+    times["ConvertToCSCMass"] = [time() - t1]
+    println("Convert to CSC = $(times["ConvertToCSCMass"]) [s]")
 
     t1 = time()
-    # Ka = parallel_make_matrix(
-    #     fes,
-    #     P.dofnums,
-    #     nalldofs(P),
-    #     eltype(P.values),
-    #     n2e,
-    #     (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material),
-    #     (femm, assmblr) -> acousticstiffness(femm, assmblr, geom, P),
-    #     ntasks,
-    #     :CSC
-    # )
-    Ka = acousticstiffness(femm, geom, P)
-    times["AssembleStiffness"] = [time() - t1]
-    println("Assemble stiffness = $(times["AssembleStiffness"]) [s]")
+    assmblr = SysmatAssemblerSparse(0.0)
+    setnomatrixresult(assmblr, true)
+    acousticstiffness(femm, assmblr, geom, P)
+    times["AssembleCOOStiffness"] = [time() - t1]
+    println("Assemble stiffness = $(times["AssembleCOOStiffness"]) [s]")
+    t1 = time()
+    setnomatrixresult(assmblr, false)
+    Ka = makematrix!(assmblr)
+    times["ConvertToCSCStiffness"] = [time() - t1]
+    println("Convert to CSC = $(times["ConvertToCSCStiffness"]) [s]")
 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
