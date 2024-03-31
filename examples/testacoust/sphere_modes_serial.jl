@@ -48,8 +48,6 @@ Wavenumber*R                    Multiplicity
 # Tetrahedral T4 mesh.
 # Exact fundamental frequency: $(c/2/R)
 function run(N = 2, assembly_only = false)
-    times = Dict{String, Vector{Float64}}()
-    
     rho = 1000 * phun("kg/m^3")# mass density
     c = 1500.0 * phun("m/s")# sound speed
     bulk = c^2 * rho
@@ -110,55 +108,62 @@ function run(N = 2, assembly_only = false)
     setebc!(P, connectednodes(bfes))
     numberdofs!(P)
 
-    t1 = time()
-    n2e = FENodeToFEMap(fes.conn, nnodes(P))
-    times["FENodeToFEMap"] = [time() - t1]
-    println("Make node to element map = $(times["FENodeToFEMap"]) [s]")
-
    material =  MatAcoustFluid(bulk, rho)
 
    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
+
+   mass_times = Dict{String,Vector{Float64}}()
 
     t0 = time()
     t1 = time()
     assmblr = SysmatAssemblerSparse(0.0)
     setnomatrixresult(assmblr, true)
     acousticmass(femm, assmblr, geom, P)
-    times["AssembleCOOMass"] = [time() - t1]
-    println("Assemble mass = $(times["AssembleCOOMass"]) [s]")
+    mass_times["AssembleCOOMass"] = [time() - t1]
+    println("Assemble mass = $(mass_times["AssembleCOOMass"]) [s]")
     t1 = time()
     setnomatrixresult(assmblr, false)
     Ma = makematrix!(assmblr)
-    times["ConvertToCSCMass"] = [time() - t1]
-    println("Convert to CSC = $(times["ConvertToCSCMass"]) [s]")
-    times["TotalAssemblyMass"] = [time() - t0]
-    println("Assembly MASS total = $(stiffness_times["TotalAssemblyMass"]) [s]")
+    mass_times["ConvertToCSCMass"] = [time() - t1]
+    println("Convert to CSC = $(mass_times["ConvertToCSCMass"]) [s]")
+    mass_times["TotalAssemblyMass"] = [time() - t0]
+    println("Assembly MASS total = $(mass_times["TotalAssemblyMass"]) [s]")
+
+    stiffness_times = Dict{String,Vector{Float64}}()
 
     t0 = time()
     t1 = time()
     assmblr = SysmatAssemblerSparse(0.0)
     setnomatrixresult(assmblr, true)
     acousticstiffness(femm, assmblr, geom, P)
-    times["AssembleCOOStiffness"] = [time() - t1]
-    println("Assemble stiffness = $(times["AssembleCOOStiffness"]) [s]")
+    stiffness_times["AssembleCOOStiffness"] = [time() - t1]
+    println("Assemble stiffness = $(stiffness_times["AssembleCOOStiffness"]) [s]")
     t1 = time()
     setnomatrixresult(assmblr, false)
     Ka = makematrix!(assmblr)
-    times["ConvertToCSCStiffness"] = [time() - t1]
-    println("Convert to CSC = $(times["ConvertToCSCStiffness"]) [s]")
-    times["TotalAssemblyStiffness"] = [time() - t0]
+    stiffness_times["ConvertToCSCStiffness"] = [time() - t1]
+    println("Convert to CSC = $(stiffness_times["ConvertToCSCStiffness"]) [s]")
+    stiffness_times["TotalAssemblyStiffness"] = [time() - t0]
     println("Assembly STIFFNESS total = $(stiffness_times["TotalAssemblyStiffness"]) [s]")
 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
-        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_serial-timing"), "json")
+        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_serial-timing-stiffness"), "json")
         if isfile(n)
             storedtimes = DataDrop.retrieve_json(n)
             for k in keys(storedtimes)
-                times[k] = cat(times[k], storedtimes[k], dims = 1)
+                stiffness_times[k] = cat(stiffness_times[k], storedtimes[k], dims=1)
             end
         end
-        DataDrop.store_json(n, times)
+        DataDrop.store_json(n, stiffness_times)
+        n = DataDrop.with_extension(joinpath("$(N)", "sphere_modes_serial-timing-mass"), "json")
+        if isfile(n)
+            storedtimes = DataDrop.retrieve_json(n)
+            for k in keys(storedtimes)
+                mass_times[k] = cat(mass_times[k], storedtimes[k], dims=1)
+            end
+        end
+        DataDrop.store_json(n, mass_times)
         return
     end
 
