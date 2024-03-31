@@ -152,9 +152,13 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     mass_times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
 
+    AT = SysmatAssemblerSparsePatt
+
+    @time AT(K_pattern)
+
     t1 = time()
     K = parallel_matrix_assembly!(
-        SysmatAssemblerSparsePatt(K_pattern),
+        AT(K_pattern),
         decomposition,
         (femm, assmblr) -> acousticmass(femm, assmblr, geom, P),
     )
@@ -200,7 +204,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
 
     t1 = time()
     K = parallel_matrix_assembly!(
-        SysmatAssemblerSparsePatt(K_pattern),
+        AT(K_pattern),
         decomposition,
         (femm, assmblr) -> acousticstiffness(femm, assmblr, geom, P),
     )
