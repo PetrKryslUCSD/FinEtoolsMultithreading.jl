@@ -31,7 +31,7 @@ end
 function SysmatAssemblerSparsePattwLookup(pattern::TPATT) where {TPATT<:SparseMatrixCSC}
     rows = Dict{Int, Int}[]
     resize!(rows, size(pattern, 2))
-    for c in axes(pattern, 2)
+    Threads.@threads for c in axes(pattern, 2)
         rows[c] = Dict{Int, Int}()
         for k in pattern.colptr[c]:(pattern.colptr[c+1] - 1)
             r = pattern.rowval[k]
@@ -107,14 +107,14 @@ function assemble!(
     ncolumns = length(dofnums_col)
     size(mat) == (nrows, ncolumns) || error("Wrong size of matrix")
     row_nalldofs, col_nalldofs = size(self._pattern)
-    for j = 1:ncolumns
+    @inbounds for j = 1:ncolumns
         dj = dofnums_col[j]
-        dj < 1 && error("Column degree of freedom < 1")
-        dj > col_nalldofs && error("Column degree of freedom > size")
+        # dj < 1 && error("Column degree of freedom < 1")
+        # dj > col_nalldofs && error("Column degree of freedom > size")
         for i = 1:nrows
             di = dofnums_row[i]
-            di < 1 && error("Row degree of freedom < 1")
-            di > row_nalldofs && error("Row degree of freedom > size")
+            # di < 1 && error("Row degree of freedom < 1")
+            # di > row_nalldofs && error("Row degree of freedom > size")
             k = self._rows[dj][di]
             self._pattern.nzval[k] += mat[i, j]
         end
