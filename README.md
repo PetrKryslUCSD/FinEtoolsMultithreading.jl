@@ -19,3 +19,4 @@ Check out the [`examples/README.md`](examples/README.md) documentation.
 ## References
 
 A [paper](https://dx.doi.org/10.2139/ssrn.4775111) has been submitted and is under review.
+The paper is consistent with v0.1.13. 
