@@ -170,7 +170,12 @@ function run(N = 2, assembly_only = false)
     d, v, nconv = eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
     v = real.(v)
     fs = real(sqrt.(complex(d))) ./ (2 * pi)
-    # @info("Frequencies (1:5): $(fs[1:5]) [Hz]")
+    @info("Frequencies (1:5): $(fs[1:5]) [Hz]")
+    @info "Reference frequencies"
+    for i in axes(wn_table, 1)
+        fq = wn_table[i][1] ./ R .* c / (2 * pi)
+        @info "$(fq), multiplicity $(wn_table[i][2])"
+    end
     ks = (2 * pi) .* fs ./ c ./ phun("m")
     # @info("Wavenumbers: $(ks) [m]")
 
