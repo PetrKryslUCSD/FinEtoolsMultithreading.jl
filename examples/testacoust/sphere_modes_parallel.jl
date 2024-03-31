@@ -124,6 +124,10 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
 
     GC.enable(false)
 
+    
+    AT = SysmatAssemblerSparsePatt
+    AT = SysmatAssemblerSparsePattwLookup
+
     t0 = time()
 
     t1 = time()
@@ -151,12 +155,9 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
         (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material), ntasks)
     mass_times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
-
-    AT = SysmatAssemblerSparsePatt
-    AT = SysmatAssemblerSparsePattwLookup
-
+    
     @time AT(K_pattern)
-
+    
     t1 = time()
     Ma = parallel_matrix_assembly!(
         AT(K_pattern),
