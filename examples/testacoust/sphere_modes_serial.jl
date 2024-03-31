@@ -119,6 +119,7 @@ function run(N = 2, assembly_only = false)
 
    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
 
+    t0 = time()
     t1 = time()
     assmblr = SysmatAssemblerSparse(0.0)
     setnomatrixresult(assmblr, true)
@@ -130,7 +131,10 @@ function run(N = 2, assembly_only = false)
     Ma = makematrix!(assmblr)
     times["ConvertToCSCMass"] = [time() - t1]
     println("Convert to CSC = $(times["ConvertToCSCMass"]) [s]")
+    times["TotalAssemblyMass"] = [time() - t0]
+    println("Assembly MASS total = $(stiffness_times["TotalAssemblyMass"]) [s]")
 
+    t0 = time()
     t1 = time()
     assmblr = SysmatAssemblerSparse(0.0)
     setnomatrixresult(assmblr, true)
@@ -142,6 +146,8 @@ function run(N = 2, assembly_only = false)
     Ka = makematrix!(assmblr)
     times["ConvertToCSCStiffness"] = [time() - t1]
     println("Convert to CSC = $(times["ConvertToCSCStiffness"]) [s]")
+    times["TotalAssemblyStiffness"] = [time() - t0]
+    println("Assembly STIFFNESS total = $(stiffness_times["TotalAssemblyStiffness"]) [s]")
 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")

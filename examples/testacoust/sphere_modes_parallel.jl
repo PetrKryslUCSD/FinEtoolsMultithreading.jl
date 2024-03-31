@@ -157,7 +157,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
     
     @time AT(K_pattern)
-    
+
     t1 = time()
     Ma = parallel_matrix_assembly!(
         AT(K_pattern),
@@ -167,8 +167,8 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     mass_times["AssemblyOfValues"] = [time() - t1]
     println("    Add to matrix = $(mass_times["AssemblyOfValues"]) [s]")
 
-    mass_times["TotalAssembly"] = [time() - t0]
-    println("Assembly MASS total = $(mass_times["TotalAssembly"]) [s]")
+    mass_times["TotalAssemblyMass"] = [time() - t0]
+    println("Assembly MASS total = $(mass_times["TotalAssemblyMass"]) [s]")
 
     GC.enable(true)
 
@@ -213,8 +213,8 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     stiffness_times["AssemblyOfValues"] = [time() - t1]
     println("    Add to matrix = $(stiffness_times["AssemblyOfValues"]) [s]")
 
-    stiffness_times["TotalAssembly"] = [time() - t0]
-    println("Assembly STIFFNESS total = $(stiffness_times["TotalAssembly"]) [s]")
+    stiffness_times["TotalAssemblyStiffness"] = [time() - t0]
+    println("Assembly STIFFNESS total = $(stiffness_times["TotalAssemblyStiffness"]) [s]")
 
     GC.enable(true)
  
