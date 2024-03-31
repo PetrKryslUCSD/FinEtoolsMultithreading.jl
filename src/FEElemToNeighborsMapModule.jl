@@ -24,7 +24,7 @@ end
 function _e2e_map(n2e, conn)
     empt = eltype(n2e.map[1])[]
     map = fill(empt, length(conn))
-    Base.Threads.@threads for i in 1:length(map) # run this in PARALLEL
+    Base.Threads.@threads for i in eachindex(map) # run this in PARALLEL
         map[i] = _unique_elem_neighbors(n2e.map, conn[i])
     end
     return map
