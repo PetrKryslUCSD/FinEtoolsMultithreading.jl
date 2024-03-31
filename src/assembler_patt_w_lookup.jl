@@ -29,14 +29,18 @@ function eltype(self::TPATT) where {TPATT<:SysmatAssemblerSparsePattwLookup}
 end
 
 function SysmatAssemblerSparsePattwLookup(pattern::TPATT) where {TPATT<:SparseMatrixCSC}
-    rows = Dict{Int, Int}[]
+    rows = Dict{Int,Int}[]
     resize!(rows, size(pattern, 2))
+    # Threads.@threads for c in axes(pattern, 2)
+    #     rows[c] = Dict{Int, Int}()
+    #     for k in pattern.colptr[c]:(pattern.colptr[c+1] - 1)
+    #         r = pattern.rowval[k]
+    #         rows[c][r] = k
+    #     end
+    # end
     Threads.@threads for c in axes(pattern, 2)
-        rows[c] = Dict{Int, Int}()
-        for k in pattern.colptr[c]:(pattern.colptr[c+1] - 1)
-            r = pattern.rowval[k]
-            rows[c][r] = k
-        end
+        cr = pattern.colptr[c]:(pattern.colptr[c+1]-1)
+        rows[c] = Dict{Int,Int}(zip(view(pattern.rowval, cr), cr))
     end
     return SysmatAssemblerSparsePattwLookup(pattern, rows, false, false)
 end
