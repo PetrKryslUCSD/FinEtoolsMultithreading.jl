@@ -5,7 +5,7 @@ using FinEtoolsAcoustics
 using FinEtoolsMultithreading
 using FinEtoolsMultithreading.Exports
 using FinEtoolsMultithreading: domain_decomposition, 
-          parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+          parallel_matrix_assembly!, SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup
 using FinEtools.MeshExportModule
 using LinearAlgebra
 using Arpack: eigs

@@ -186,11 +186,11 @@ version = "3.0.0"
 
 [[deps.FinEtoolsMultithreading]]
 deps = ["ChunkSplitters", "FinEtools", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
-git-tree-sha1 = "7acd6bd8d1ab9347f55a4a757b5bc6790f9fb236"
+git-tree-sha1 = "551122c41ebfcdaaca0d8eaa4015da739dbf9ace"
 repo-rev = "main"
 repo-url = "https://github.com/PetrKryslUCSD/FinEtoolsMultithreading.jl.git"
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
-version = "0.2.1"
+version = "0.2.0"
 
 [[deps.HDF5]]
 deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]
@@ -579,9 +579,9 @@ version = "1.18.3"
 
 [[deps.XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Zlib_jll"]
-git-tree-sha1 = "07e470dabc5a6a4254ffebc29a1b3fc01464e105"
+git-tree-sha1 = "532e22cf7be8462035d092ff21fada7527e2c488"
 uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
-version = "2.12.5+0"
+version = "2.12.6+0"
 
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
