@@ -1,3 +1,50 @@
+module mparallelassembly_assembler_w_lup_2
+using FinEtools
+using FinEtoolsMultithreading.Exports
+using FinEtoolsMultithreading: SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup, startassembly!, assemble!, makematrix!
+using LinearAlgebra
+using Test
+using InteractiveUtils
+using BenchmarkTools
+
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 12, 33, 24
+    nl, nt, nw = 5, 3, 4
+    ntasks = 2
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+    v_f = gathersysvec(psi)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    n2e = FENodeToFEMap(fes.conn, count(fens))
+    n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    
+    c = [i for i in fes.conn[end]]
+    z = zeros(8, 8); r = psi.dofnums[c, 1]
+    
+    assembler =  SysmatAssemblerSparsePattwLookup(K)
+    startassembly!(assembler, 8, 8, 1000, nalldofs(psi), nalldofs(psi))
+    @btime assemble!($assembler, $z, $r, $r)
+    assembler =  SysmatAssemblerSparsePatt(K)
+    startassembly!(assembler, 8, 8, 1000, nalldofs(psi), nalldofs(psi))
+    @btime assemble!($assembler, $z, $r, $r)
+#    @code_warntype  assemble!(assembler, zeros(8, 8), psi.dofnums[c, 1], psi.dofnums[c, 1])
+
+    true
+end
+test()
+nothing
+end
+
 module mparallelassembly_assembler_w_lup_1
 using FinEtools
 using FinEtoolsMultithreading.Exports
