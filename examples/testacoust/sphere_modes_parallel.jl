@@ -156,7 +156,9 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     mass_times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
     
-    @time AT(K_pattern)
+    assembler =  AT(K_pattern)
+    startassembly!(assembler, 24, 24, 1000, nalldofs(P), nalldofs(P))
+    assemble!(assembler, zeros(24, 24), 1:24, 1:24)
 
     t1 = time()
     Ma = parallel_matrix_assembly!(
@@ -205,7 +207,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Domain decomposition = $(stiffness_times["DomainDecomposition"]) [s]")
 
     t1 = time()
-    Ka = parallel_matrix_assembly!(
+    @time Ka = parallel_matrix_assembly!(
         AT(K_pattern),
         decomposition,
         (femm, assmblr) -> acousticstiffness(femm, assmblr, geom, P),
