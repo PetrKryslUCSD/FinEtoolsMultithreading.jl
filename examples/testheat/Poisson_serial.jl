@@ -35,16 +35,28 @@ function _run(make_model, N, assembly_only)
     List = vcat(l1, l2, l3, l4, l5, l6)
     setebc!(Temp, List, true, 1, tempf(geom.values[List, :])[:])
     numberdofs!(Temp)
-    println("Number of free degrees of freedom: $(nfreedofs(Temp))")
+    
+    @info "$(count(fens)) nodes"
+    @info "$(count(fes)) elements"
     
     material = MatHeatDiff(thermal_conductivity)
     femm = FEMMHeatDiff(IntegDomain(fes, ir), material)
     println("Conductivity")
     t0 = time()
     t1 = time()
-    K = conductivity(femm, geom, Temp)
+    assmblr = SysmatAssemblerSparse(0.0)
+    setnomatrixresult(assmblr, true)
+    conductivity(femm, assmblr, geom, Temp)
+    times["AssembleCOOStiffness"] = [time() - t1]
+    println("Assemble stiffness = $(times["AssembleCOOStiffness"]) [s]")
+    t1 = time()
+    setnomatrixresult(assmblr, false)
+    K = makematrix!(assmblr)
+    times["ConvertToCSCStiffness"] = [time() - t1]
+    println("Convert to CSC = $(times["ConvertToCSCStiffness"]) [s]")
     times["TotalAssemblyStiffness"] = [time() - t0]
     println("Assembly total = $(times["TotalAssemblyStiffness"]) [s]")
+
 
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
@@ -76,7 +88,7 @@ function _run(make_model, N, assembly_only)
 end # Poisson_serial
 
 function run(N = 25, assembly_only = false)
-    return _run(make_model_H20, N, assembly_only)
+    return _run(make_model, N, assembly_only)
 end
 
 end # module Poisson_serial

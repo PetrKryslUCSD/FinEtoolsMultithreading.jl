@@ -31,6 +31,23 @@ The serial assembly of the sparse matrix
 julia ./testlindef/sersim.jl 40 
 ```
 
+## Steady-state heat analysis test case
+
+The mesh with 50 mesh edges amounts to 750,000 elements. 
+
+To run the parallel and serial assembly for a mesh with 40 mesh edges along one
+of the dimensions, type the following into the shell prompt:
+
+The parallel assembly of the sparse matrix on three computing threads
+```
+julia -t 3 ./testheat/parsim.jl 40 
+```
+
+The serial assembly of the sparse matrix 
+```
+julia ./testheat/sersim.jl 40 
+```
+
 
 ## Modal acoustic analysis test case
 

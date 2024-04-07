@@ -93,6 +93,9 @@ function _run(make_model, N, ntasks, assembly_only)
     times["AssemblyOfValues"] = [time() - t1]
     println("    Add to matrix = $(times["AssemblyOfValues"]) [s]")
 
+    times["TotalAssemblyStiffness"] = [time() - t0]
+    println("Assembly total = $(times["TotalAssemblyStiffness"]) [s]")
+
     if assembly_only
         isdir("$(N)") || mkdir("$(N)")
         n = DataDrop.with_extension(joinpath("$(N)", "Poisson_parallel-timing-stiffness"), "json")

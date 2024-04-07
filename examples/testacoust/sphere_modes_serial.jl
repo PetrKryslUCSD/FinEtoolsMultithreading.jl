@@ -47,7 +47,7 @@ Wavenumber*R                    Multiplicity
 # Sphere of radius $(R), in WATER.
 # Tetrahedral T4 mesh.
 # Exact fundamental frequency: $(c/2/R)
-function run(N = 2, assembly_only = false)
+function run(N=2, assembly_only=false)
     rho = 1000 * phun("kg/m^3")# mass density
     c = 1500.0 * phun("m/s")# sound speed
     bulk = c^2 * rho
@@ -77,7 +77,7 @@ function run(N = 2, assembly_only = false)
         fes,
         [-1.0, 0.0, 0.0],
         [0.0, 0.0, 0.0],
-        renumb = renumb,
+        renumb=renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
@@ -86,7 +86,7 @@ function run(N = 2, assembly_only = false)
         fes,
         [0.0, -1.0, 0.0],
         [0.0, 0.0, 0.0],
-        renumb = renumb,
+        renumb=renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
@@ -95,12 +95,13 @@ function run(N = 2, assembly_only = false)
         fes,
         [0.0, 0.0, -1.0],
         [0.0, 0.0, 0.0],
-        renumb = renumb,
+        renumb=renumb,
     )
     fens, newfes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1, fes2)
 
     @info "$(count(fens)) nodes"
+    @info "$(count(fes)) elements"
 
     geom = NodalField(fens.xyz)
     P = NodalField(zeros(size(fens.xyz, 1), 1))
@@ -108,11 +109,11 @@ function run(N = 2, assembly_only = false)
     setebc!(P, connectednodes(bfes))
     numberdofs!(P)
 
-   material =  MatAcoustFluid(bulk, rho)
+    material = MatAcoustFluid(bulk, rho)
 
-   femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
+    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
 
-   mass_times = Dict{String,Vector{Float64}}()
+    mass_times = Dict{String,Vector{Float64}}()
 
     t0 = time()
     t1 = time()
@@ -170,7 +171,7 @@ function run(N = 2, assembly_only = false)
     Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
     Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
 
-    d, v, nconv = eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
+    d, v, nconv = eigs(Ka_ff, Ma_ff; nev=neigvs, which=:SM, explicittransform=:none)
     v = real.(v)
     fs = real(sqrt.(complex(d))) ./ (2 * pi)
     @info("Frequencies (1:5): $(fs[1:5]) [Hz]")
@@ -193,7 +194,7 @@ function run(N = 2, assembly_only = false)
         connasarray(fes),
         geom.values,
         FinEtools.MeshExportModule.VTK.H8;
-        scalars = scalarllist,
+        scalars=scalarllist,
     )
     # @async run(`"paraview.exe" $File`)
 
