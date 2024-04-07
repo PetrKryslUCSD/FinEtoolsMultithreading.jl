@@ -1,9 +1,11 @@
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
 FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
 FinEtoolsAcoustics = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 FinEtoolsDeforLinear = "e9187c00-8bdd-11e9-1e70-7ba8303116a2"
+FinEtoolsHeatDiff = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
 FinEtoolsMultithreading = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"

@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "30d1f4bd2ff9d667eefdcfbea8bdf74c851e91d3"
+project_hash = "79c5ccca50f930bb4a9a1207fddec64f7683b31f"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -68,6 +68,12 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "f1dff6729bc61f4d49e140da1af55dcd1ac97b2f"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.5.0"
 
 [[deps.BitTwiddlingConvenienceFunctions]]
 deps = ["Static"]
@@ -184,8 +190,14 @@ git-tree-sha1 = "5f38c79475d3e85795a099eb7ec7a5119c5620ea"
 uuid = "e9187c00-8bdd-11e9-1e70-7ba8303116a2"
 version = "3.0.0"
 
+[[deps.FinEtoolsHeatDiff]]
+deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "2d19911310cab0a3fade7987a194a1cae8ccd8c7"
+uuid = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
+version = "3.0.5"
+
 [[deps.FinEtoolsMultithreading]]
-deps = ["ChunkSplitters", "FinEtools", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
+deps = ["BenchmarkTools", "ChunkSplitters", "FinEtools", "InteractiveUtils", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
 path = ".."
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 version = "0.3.0"
@@ -419,6 +431,10 @@ version = "1.4.3"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[deps.Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
