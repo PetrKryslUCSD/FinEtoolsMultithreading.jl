@@ -82,10 +82,12 @@ function run(N = 10, assembly_only = false)
     setnomatrixresult(assembler, true)
     stiffness(femm, assembler, geom, u)
     times["ComputeCOO"] = [time() - t1]
+    println("Compute COO = $(times["ComputeCOO"]) [s]")
     t1 = time()
     setnomatrixresult(assembler, false)
     K = makematrix!(assembler)
-    times["BuildCSR"] = [time() - t1]
+    times["BuildCSC"] = [time() - t1]
+    println("Build CSC = $(times["BuildCSC"]) [s]")
 
     times["TotalAssembly"] = [time() - t0]
     println("Assembly total = $(times["TotalAssembly"]) [s]")
