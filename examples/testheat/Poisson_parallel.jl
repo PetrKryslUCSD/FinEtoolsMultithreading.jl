@@ -40,8 +40,10 @@ function _run(make_model, N, ntasks, assembly_only)
     List = vcat(l1, l2, l3, l4, l5, l6)
     setebc!(Temp, List, true, 1, tempf(geom.values[List, :])[:])
     numberdofs!(Temp)
-    println("Number of free degrees of freedom: $(nfreedofs(Temp))")
     
+    @info "$(count(fens)) nodes"
+    @info "$(count(fes)) elements"
+        
     material = MatHeatDiff(thermal_conductivity)
     println("Conductivity")
     
