@@ -52,7 +52,12 @@ function _prepare_arrays(IT, FT, map, dofnums)
 end
 
 """
-    sparse_symmetric_csc_pattern(dofnums::Array{IT,2}, nrowscols, n2n, z = zero(Float64)) where {IT<:Integer}
+    sparse_symmetric_csc_pattern(
+        dofnums::Array{IT,2},
+        nrowscols,
+        n2n,
+        FT = Float64,
+    ) where {IT<:Integer}
     
 Create symmetric sparse zero matrix (sparsity pattern).
 
@@ -65,14 +70,11 @@ function sparse_symmetric_csc_pattern(
     dofnums::Array{IT,2},
     nrowscols,
     n2n,
-    z = zero(Float64),
+    FT = Float64,
 ) where {IT<:Integer}
     @assert length(n2n.map) == size(dofnums, 1)
-    FT = typeof(z)
-    # This is about an order of magnitude less expensive than the next step
     colptr, rowval, nzval = _prepare_arrays(IT, FT, n2n.map, dofnums)
-    # This stops scaling for nthreads >= 32
-    @inbounds Base.Threads.@threads for n in axes(dofnums, 1)
+    Base.Threads.@threads for n in axes(dofnums, 1)
         _populate_with_dofs!(rowval, n, n2n.map[n], dofnums, colptr)
     end 
     return SparseMatrixCSC(nrowscols, nrowscols, colptr, rowval, nzval)
