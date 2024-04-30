@@ -126,7 +126,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
 
     
     AT = SysmatAssemblerSparsePatt
-    AT = SysmatAssemblerSparsePattwLookup
+    # AT = SysmatAssemblerSparsePattwLookup
 
     t0 = time()
 
