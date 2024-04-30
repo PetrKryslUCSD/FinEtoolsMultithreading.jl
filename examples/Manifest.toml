@@ -200,7 +200,7 @@ version = "3.0.5"
 deps = ["BenchmarkTools", "ChunkSplitters", "FinEtools", "InteractiveUtils", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
 path = ".."
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
-version = "0.3.0"
+version = "0.3.2"
 
 [[deps.HDF5]]
 deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]
