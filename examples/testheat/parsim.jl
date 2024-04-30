@@ -15,6 +15,7 @@ using LinearAlgebra
 LinearAlgebra.BLAS.set_num_threads(1)
 
 using ThreadPinning
+ThreadPinning.Prefs.set_os_warning(false)
 pinthreads(:cores)
 
 N = parse(Int, ARGS[1])
