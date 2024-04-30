@@ -33,7 +33,7 @@ include(raw"sphere_modes_parallel.jl")
 using .sphere_modes_parallel; 
 
 using FinEtoolsMultithreading
-@info "Running FinEtoolsMultithreading $(Pkg.TOML.parsefile(joinpath(String(first(methods(getfield(FinEtoolsMultithreading, :eval))).file), "..", "..", "Project.toml"))["version"])"
+Pkg.status("FinEtoolsMultithreading")
 
 NTRIALS = 5
 for trial in 1:NTRIALS
