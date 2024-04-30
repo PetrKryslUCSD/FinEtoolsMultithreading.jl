@@ -16,8 +16,7 @@ function _unique_node_neighbors(ellist, conn, npe)
     p = 1
     @inbounds for i in ellist
         for k in conn[i]
-            nodes[p] = k
-                p += 1
+            nodes[p] = k; p += 1
         end
     end
     return unique!(sort!(nodes))
