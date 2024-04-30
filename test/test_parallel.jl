@@ -26,7 +26,8 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
+    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n)
     
     c = [i for i in fes.conn[end]]
     z = zeros(8, 8); r = psi.dofnums[c, 1]
@@ -71,7 +72,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     assmblr = SysmatAssemblerSparsePattwLookup(K)
     K = bilform_diffusion(femm, assmblr, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     
@@ -193,7 +194,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     assmblr = SysmatAssemblerSparsePatt(K)
     K = bilform_diffusion(femm, assmblr, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     
@@ -295,7 +296,7 @@ function test()
 
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K_pattern = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    K_pattern = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     coloring = element_coloring(fes, n2e)
     decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
     K = parallel_matrix_assembly!(
@@ -357,7 +358,7 @@ function test()
 
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
-    K_pattern = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, zero(eltype(psi.values)))
+    K_pattern = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     coloring = element_coloring(fes, n2e)
     test_coloring(coloring, n2e)
 
