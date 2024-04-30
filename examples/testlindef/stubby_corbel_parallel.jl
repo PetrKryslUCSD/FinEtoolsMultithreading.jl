@@ -112,7 +112,7 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     println("    Make node to neighbor map = $(times["FENodeToNeighborsMap"]) [s]")
 
     t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(u.dofnums, nalldofs(u), n2n, zero(eltype(u.values)))
+    K_pattern = sparse_symmetric_csc_pattern(u.dofnums, nalldofs(u), n2n, eltype(u.values))
     times["SparsityPattern"] = [time() - t1]
     println("    Sparsity pattern = $(times["SparsityPattern"]) [s]")
 
