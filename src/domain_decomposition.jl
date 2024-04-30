@@ -24,27 +24,20 @@ created using the function `createsubd`.
 The matrix is created by going sequentially through the unique colors
 and then in parallel execute all the finite element machines for that color.
 """
-function domain_decomposition(fes, coloring, createsubd, ntasks=Threads.nthreads())
-    element_colors, unique_colors = coloring
-    decomposition = []
-    resize!(decomposition, length(unique_colors))
-    Threads.@threads for i in eachindex(unique_colors)
+function domain_decomposition(fes, coloring, createsubd,
+    ntasks=Threads.nthreads())
+    el_colors, uniq_colors = coloring
+    decomposition = fill([], length(uniq_colors))
+    Threads.@threads for i in eachindex(uniq_colors)
+        ellist = findall(c -> c == uniq_colors[i], el_colors)
+        fesofacolor = subset(fes, ellist)
         decomposition[i] =
-            _make_femms(fes, ntasks, createsubd,
-                findall(c -> c == unique_colors[i], element_colors)
-            )
+            _make_femms(fesofacolor, ntasks, createsubd)
     end
     return decomposition
 end
 
-function _make_femms(fes, ntasks, createsubd, color_list)
-    subsetfes = subset(fes, color_list)
-    chks = chunks(1:count(subsetfes), ntasks)
-    sds = []
-    resize!(sds, length(chks))
-    for k = 1:length(chks)
-        (ch, j) = chks[k]
-        sds[k] = createsubd(subset(subsetfes, ch))
-    end
-    return typeof(sds[1])[sds[k] for k in eachindex(sds)]
+function _make_femms(fesofacolor, ntasks, createsubd)
+    chks = chunks(1:count(fesofacolor), ntasks)
+    return [createsubd(subset(fesofacolor, ch)) for (ch, j) in chks]
 end
