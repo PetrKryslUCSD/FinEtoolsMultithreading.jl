@@ -73,7 +73,7 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     println("nfreedofs(u) = $(nfreedofs(u))")
 
     t1 = time()
-    n2e = FENodeToFEMapThr(fes.conn, nnodes(u))
+    n2e = FENodeToFEMapThr(fes, nnodes(u))
     times["FENodeToFEMap"] = [time() - t1]
     println("Make node to element map = $(times["FENodeToFEMap"]) [s]")
 
