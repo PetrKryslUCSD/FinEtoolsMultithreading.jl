@@ -15,8 +15,9 @@ using ThreadedScans
 include("utilities.jl")
 include("FENodeToNeighborsMapModule.jl")
 using .FENodeToNeighborsMapModule: FENodeToNeighborsMap
-include("FEElemToNeighborsMapModule.jl")
-using .FEElemToNeighborsMapModule: FEElemToNeighborsMap
+include("FElemToNeighborsMapModule.jl")
+using .FElemToNeighborsMapModule: FElemToNeighborsMap
+include("FENodeToFEMapModule.jl")
 include("element_coloring.jl")
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
@@ -36,9 +37,9 @@ export sparse_symmetric_csc_pattern
 using ..FENodeToNeighborsMapModule: FENodeToNeighborsMap
 # Exported: type for maps from nodes to connected nodes
 export FENodeToNeighborsMap
-using ..FEElemToNeighborsMapModule: FEElemToNeighborsMap
+using ..FElemToNeighborsMapModule: FElemToNeighborsMap
 # Exported: type for maps from nodes to connected nodes
-export FEElemToNeighborsMap
+export FElemToNeighborsMap
 end
 
 # Enable LSP look up in test modules

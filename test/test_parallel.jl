@@ -1,7 +1,41 @@
+module mparallelfenodetoelemmap
+using FinEtools
+using FinEtoolsMultithreading.Exports
+using FinEtoolsMultithreading: SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup, startassembly!, assemble!, makematrix!
+using FinEtoolsMultithreading.FENodeToFEMapModule: FENodeToFEMapThr
+using LinearAlgebra
+using Test
+using InteractiveUtils
+using BenchmarkTools
+
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 15, 13, 12
+    ntasks = 2
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+
+    n2e = FinEtools.FENodeToFEMap(fes.conn, count(fens))
+    # n2e = FinEtools.FENodeToFEMap(fes.conn, count(fens))
+    # n2ethr = FENodeToFEMapThr(fes, count(fens))
+    n2ethr = FENodeToFEMapThr(fes, count(fens))
+    for i in eachindex(n2e.map)
+        @test n2e.map[i] == n2ethr.map[i]
+    end
+    # @info "On $(Threads.nthreads()) threads"
+    true
+end
+test()
+nothing
+end
+
 module mparallelassembly_assembler_w_lup_2
 using FinEtools
 using FinEtoolsMultithreading.Exports
 using FinEtoolsMultithreading: SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup, startassembly!, assemble!, makematrix!
+using FinEtoolsMultithreading.FENodeToFEMapModule: FENodeToFEMapThr
 using LinearAlgebra
 using Test
 using InteractiveUtils
@@ -24,7 +58,7 @@ function test()
     v_f = gathersysvec(psi)
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
-    n2e = FENodeToFEMap(fes.conn, count(fens))
+    n2e = FENodeToFEMapThr(fes, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     K = sparse_symmetric_csc_pattern(psi.dofnums, nalldofs(psi), n2n)
@@ -34,10 +68,10 @@ function test()
     
     assembler =  SysmatAssemblerSparsePattwLookup(K)
     startassembly!(assembler, 8, 8, 1000, nalldofs(psi), nalldofs(psi))
-    @btime assemble!($assembler, $z, $r, $r)
+    assemble!(assembler, z, r, r)
     assembler =  SysmatAssemblerSparsePatt(K)
     startassembly!(assembler, 8, 8, 1000, nalldofs(psi), nalldofs(psi))
-    @btime assemble!($assembler, $z, $r, $r)
+    assemble!(assembler, z, r, r)
 #    @code_warntype  assemble!(assembler, zeros(8, 8), psi.dofnums[c, 1], psi.dofnums[c, 1])
 
     true
@@ -98,7 +132,7 @@ function test(n = 2)
     fens, fes = H8block(W, L, H, n, n, n)
  
     n2e = FENodeToFEMap(fes.conn, count(fens))
-    e2e = FEElemToNeighborsMap(n2e, fes.conn)
+    e2e = FElemToNeighborsMap(n2e, fes.conn)
     
     found = true
     for i in eachindex(n2e.map)
@@ -110,7 +144,7 @@ function test(n = 2)
     end
     @test found
 
-    e2e = FEElemToNeighborsMap(n2e, fes)
+    e2e = FElemToNeighborsMap(n2e, fes)
     
     found = true
     for i in eachindex(n2e.map)
