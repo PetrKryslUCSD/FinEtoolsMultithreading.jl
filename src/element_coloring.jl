@@ -1,5 +1,5 @@
 """
-    element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FEElemToNeighborsMap,IT<:Integer}
+    element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
     
 Determine element coloring such that no elements of the same color share a node.
 
@@ -14,7 +14,7 @@ Vector of element colors, vector of unique colors, and vector of counts of each
 color.
 
 """
-function element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FEElemToNeighborsMap,IT<:Integer}
+function element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
     element_colors = fill(zero(Int16), count(fes))
     unique_colors = eltype(element_colors)[1]
     color_counts = IT[0]

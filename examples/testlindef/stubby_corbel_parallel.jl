@@ -97,9 +97,9 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     t0 = time(); 
 
     t1 = time()
-    e2e = FEElemToNeighborsMap(n2e, fes)
-    times["FEElemToNeighborsMap"] = [time() - t1]
-    println("    Make element to neighbor map = $(times["FEElemToNeighborsMap"]) [s]")
+    e2e = FElemToNeighborsMap(n2e, fes)
+    times["FElemToNeighborsMap"] = [time() - t1]
+    println("    Make element to neighbor map = $(times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
     coloring = FinEtoolsMultithreading.element_coloring(fes, e2e)

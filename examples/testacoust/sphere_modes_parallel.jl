@@ -131,9 +131,9 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     t0 = time()
 
     t1 = time()
-    e2e = FEElemToNeighborsMap(n2e, fes)
-    mass_times["FEElemToNeighborsMap"] = [time() - t1]
-    println("    Make element to neighbor map = $(mass_times["FEElemToNeighborsMap"]) [s]")
+    e2e = FElemToNeighborsMap(n2e, fes)
+    mass_times["FElemToNeighborsMap"] = [time() - t1]
+    println("    Make element to neighbor map = $(mass_times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
     coloring = FinEtoolsMultithreading.element_coloring(fes, e2e)
@@ -181,9 +181,9 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     t0 = time()
 
     t1 = time()
-    e2e = FEElemToNeighborsMap(n2e, fes)
-    stiffness_times["FEElemToNeighborsMap"] = [time() - t1]
-    println("    Make element to neighbor map = $(stiffness_times["FEElemToNeighborsMap"]) [s]")
+    e2e = FElemToNeighborsMap(n2e, fes)
+    stiffness_times["FElemToNeighborsMap"] = [time() - t1]
+    println("    Make element to neighbor map = $(stiffness_times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
     coloring = FinEtoolsMultithreading.element_coloring(fes, e2e)
