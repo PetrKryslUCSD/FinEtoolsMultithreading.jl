@@ -40,6 +40,9 @@ export FENodeToNeighborsMap
 using ..FElemToNeighborsMapModule: FElemToNeighborsMap
 # Exported: type for maps from nodes to connected nodes
 export FElemToNeighborsMap
+using ..FENodeToFEMapModule: FENodeToFEMapThr
+# Exported: type for maps from nodes to elements computed on multiple threads
+export FENodeToFEMapThr
 end
 
 # Enable LSP look up in test modules

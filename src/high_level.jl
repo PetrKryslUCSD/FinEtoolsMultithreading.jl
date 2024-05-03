@@ -39,7 +39,7 @@ function parallel_make_matrix(
     ntasks = Threads.nthreads(),
     kind = :CSC,
 )
-    n2e = FENodeToFEMap(fes, nnodes(u))
+    n2e = FENodeToFEMapThr(fes, nnodes(u))
     parallel_make_matrix(
         fes,
         u.dofnums,

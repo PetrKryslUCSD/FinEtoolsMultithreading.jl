@@ -1,7 +1,7 @@
 name = "FinEtoolsMultithreading"
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"

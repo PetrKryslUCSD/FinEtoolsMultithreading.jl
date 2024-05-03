@@ -48,7 +48,7 @@ function _run(make_model, N, ntasks, assembly_only)
     println("Conductivity")
     
     t1 = time()
-    n2e = FENodeToFEMap(fes.conn, nnodes(Temp))
+    n2e = FENodeToFEMapThr(fes, nnodes(Temp))
     times["FENodeToFEMap"] = [time() - t1]
     println("Make node to element map = $(times["FENodeToFEMap"]) [s]")
 
