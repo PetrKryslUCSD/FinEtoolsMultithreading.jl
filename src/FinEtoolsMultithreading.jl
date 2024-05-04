@@ -19,9 +19,11 @@ include("FElemToNeighborsMapModule.jl")
 using .FElemToNeighborsMapModule: FElemToNeighborsMap
 include("FENodeToFEMapModule.jl")
 include("element_coloring.jl")
+include("parallel_element_coloring.jl")
 include("sparsity_pattern.jl")
 include("parallel_assembly.jl")
 include("domain_decomposition.jl")
+using .FENodeToFEMapModule: FENodeToFEMapThr
 include("high_level.jl")
 
 
