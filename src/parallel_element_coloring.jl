@@ -1,5 +1,5 @@
 using ECLGraphColor: PECLgraph, make_graph, add_nlist, add_nindex
-using ECLGraphColor: get_color, run_graph_coloring, free_graph
+using ECLGraphColor: get_color, run_graph_coloring, free_graph, print_graph
 
 """
     parallel_element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
@@ -29,24 +29,31 @@ function parallel_element_coloring(fes, e2e::E2EM,
         ellistit = ellist
     end
     map = e2e.map
-    g = make_graph(length(map), sum([length(c) for c in map]))
+    # -1 because we are not adding the diagonal element (self-reference)
+    g = make_graph(length(map), sum([length(c)-1 for c in map]))
     idx = 1
     for i in eachindex(map)
         add_nindex(g, i, idx)
-        idx += length(map[i])
+        idx += length(map[i]) - 1 # -1 because we are not adding the diagonal element (self-reference)
     end
     add_nindex(g, length(map)+1, idx)
     for i in eachindex(map)
-        for j in eachindex(map[i])
-            add_nlist(g, i, j, map[i][j])
+        neighbors = map[i]
+        p = 1
+        for j in eachindex(neighbors)
+            if (neighbors[j] != i) 
+                add_nlist(g, i, p, neighbors[j]) # we are not adding self-reference
+                p += 1
+            end
         end
     end
+    print_graph(g)
     run_graph_coloring(g, ntasks)
     for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
     free_graph(g)
-    return element_colors, unique(element_colors)
+    return element_colors, sort(unique(element_colors))
 end
 
 # function parallel_element_coloring(fes, e2e::E2EM,

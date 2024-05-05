@@ -26,8 +26,8 @@ function test()
     nl, nt, nw = 72, 83, 24
     nl, nt, nw = 2, 3, 4
     # nl, nt, nw = 7, 13, 9
-    nl, nt, nw = 17, 13, 19
-    nl, nt, nw = 27, 23, 29
+    # nl, nt, nw = 17, 13, 19
+    # nl, nt, nw = 27, 23, 29
     ntasks = 2
 
     fens, fes = T4block(Float64.((nl, nw, nt))..., nl, nw, nt)
@@ -44,16 +44,18 @@ function test()
     coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
     @time coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
     @show unique(coloring[1])
-    test_coloring(coloring, n2e)
+ 
 
-    # element_colors, unique_colors = coloring
-    # @show unique_colors = sort(unique_colors)
-    # @show partitions = unique_colors
-    # for j in 1:length(partitions)
-    #     sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
-    #     @show count(sfes)
-    #     vtkexportmesh("mesh_test_coloring_1-c=$(partitions[j]).vtk", fens, sfes)
-    # end
+    element_colors, unique_colors = coloring
+    @show unique_colors = sort(unique_colors)
+    @show partitions = unique_colors
+    for j in 1:length(partitions)
+        sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
+        @show count(sfes)
+        vtkexportmesh("mesh_test_coloring_1-c=$(partitions[j]).vtk", fens, sfes)
+    end
+    
+   test_coloring(coloring, n2e)
 
     true
 end
