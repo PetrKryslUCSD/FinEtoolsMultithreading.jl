@@ -11,6 +11,7 @@ using SparseMatricesCSR
 using LinearAlgebra
 using FinEtools
 using ThreadedScans
+using ECLGraphColor
 
 include("utilities.jl")
 include("FENodeToNeighborsMapModule.jl")
