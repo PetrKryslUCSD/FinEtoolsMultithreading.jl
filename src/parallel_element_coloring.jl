@@ -59,124 +59,8 @@ function _avail_color(eneighbors, element_colors, current_color)
     return 0
 end
 
-# function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
-#     total_elements = length(ellist_iterator)
-#     new_element_colors = deepcopy(element_colors)
-#     colored_elements = 0
-#     current_color = 1
-#     done = false
-#     while !done
-#         increase_min_color = false
-#         increase_max_color = false
-#         for e in ellist_iterator
-#             if element_colors[e] == 0 # not colored yet
-#                 mine, maxe = _extrema(e2emap[e], element_colors)
-#                 if (e == mine)
-#                     c = _avail_color(e2emap[e], element_colors, current_color-1)
-#                     if c == 0
-#                         c = current_color
-#                         increase_min_color = true
-#                     end 
-#                     @assert !(c in element_colors[e2emap[e]])
-#                     @assert !(c in new_element_colors[e2emap[e]])
-#                     new_element_colors[e] = c
-#                     colored_elements += 1
-#                     # @show  e, new_element_colors[e], element_colors[e2emap[e]], new_element_colors[e2emap[e]]
-#                 elseif (e == maxe)
-#                     @show c = _avail_color(e2emap[e], element_colors, current_color-1)
-#                     if c == 0
-#                         c = current_color + 1
-#                         increase_max_color = true
-#                     end 
-#                     @assert !(c in element_colors[e2emap[e]])
-#                     if (c in new_element_colors[e2emap[e]])
-#                         @show c, new_element_colors[e2emap[e]]
-#                     end
-#                     @assert !(c in new_element_colors[e2emap[e]])
-#                     new_element_colors[e] = c
-#                     colored_elements += 1
-#                     # @show  e, new_element_colors[e], element_colors[e2emap[e]], new_element_colors[e2emap[e]]
-#                 end
-                   
-#             end
-#         end
-#         increase_min_color && (current_color += 1)
-#         increase_max_color && (current_color += 1)
-#         @show current_color
-#         @show colored_elements, total_elements
-#         element_colors .= new_element_colors 
-#         done = colored_elements == total_elements
-#     end
-#     return element_colors, collect(1:current_color-1)
-# end
 
-# function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
-#     total_elements = length(ellist_iterator)
-#     new_element_colors = deepcopy(element_colors)
-#     colored_elements = 0
-#     current_color = 1
-#     done = false
-#     while !done
-#         increase_current_color = false
-#         color_used = fill(false, current_color-1)
-#         new_ellist_iterator = eltype(ellist_iterator)[]
-#         sizehint!(new_ellist_iterator, length(ellist_iterator))
-#         for e in ellist_iterator
-#             if element_colors[e] == 0 # not colored yet
-#                 mine = _minimum(e2emap[e], element_colors)
-#                 if (e == mine)
-#                     c = _avail_color(e2emap[e], element_colors, color_used)
-#                     if c == 0
-#                         c = current_color
-#                         increase_current_color = true
-#                     end 
-#                     new_element_colors[e] = c
-#                     colored_elements += 1
-#                 else
-#                     push!(new_ellist_iterator, e)
-#                 end
-#             end
-#         end
-#         increase_current_color && (current_color += 1)
-#         # @show current_color
-#         # @show colored_elements, total_elements
-#         element_colors .= new_element_colors 
-#         ellist_iterator = new_ellist_iterator
-#         done = colored_elements == total_elements
-#     end
-#     return element_colors, collect(1:current_color-1)
-# end
-
-# function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
-#     total_elements = length(ellist_iterator)
-#     new_element_colors = deepcopy(element_colors)
-#     colored_elements = 0
-#     current_color = 1
-#     done = false
-#     while !done
-#         increase_current_color = false
-#         color_used = fill(false, current_color-1)
-#         Threads.@threads for e in ellist_iterator
-#             if element_colors[e] == 0 # not colored yet
-#                 mine = _minimum(e2emap[e], element_colors)
-#                 if (e == mine)
-#                     c = _avail_color(e2emap[e], element_colors, color_used)
-#                     if c == 0
-#                         c = current_color
-#                         increase_current_color = true
-#                     end 
-#                     new_element_colors[e] = c
-#                     colored_elements += 1
-#                 end
-#             end
-#         end
-#         increase_current_color && (current_color += 1)
-#         element_colors .= new_element_colors 
-#         done = colored_elements == total_elements
-#     end
-#     return element_colors, collect(1:current_color-1)
-# end
-
+# Working sequential  implementation
 # function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
 #     total_elements = length(ellist_iterator)
 #     new_element_colors = deepcopy(element_colors)
@@ -222,6 +106,7 @@ function _maybe_color_element!(new_element_colors, e, eneighbors, element_colors
     end
 end
 
+# Working parallel implementation
 function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
     ntasks = Threads.nthreads()
     chks = chunks(ellist_iterator, ntasks)
@@ -233,16 +118,13 @@ function parallel_element_coloring!(element_colors, e2emap, ellist_iterator)
     while remaining > 0
         increase_current_color .= false
         colored_elements .= 0
-        Threads.@sync begin
-            Threads.@spawn for ch in chks
-                t = ch[2]
-                for i in ch[1]
-                    e = ellist_iterator[i]
-                    if element_colors[e] == 0 # not colored yet
-                        inc, col = _maybe_color_element!(new_element_colors, e, e2emap[e], element_colors, current_color)
-                        increase_current_color[t] = increase_current_color[t] || inc
-                        colored_elements[t] += col
-                    end
+        Threads.@threads for ch in chks
+            t = ch[2]
+            for e in ellist_iterator[ch[1]]
+                if element_colors[e] == 0 # not colored yet
+                    inc, col = _maybe_color_element!(new_element_colors, e, e2emap[e], element_colors, current_color)
+                    increase_current_color[t] = increase_current_color[t] || inc
+                    colored_elements[t] += col
                 end
             end
         end
