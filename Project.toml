@@ -1,11 +1,12 @@
 name = "FinEtoolsMultithreading"
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "0.3.3"
+version = "0.3.4"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
+ECLGraphColor = "9c1363d0-405f-4779-b1bc-67e54cdcac85"
 FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
