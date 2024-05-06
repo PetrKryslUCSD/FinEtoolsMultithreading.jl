@@ -48,7 +48,7 @@ function parallel_element_coloring(fes, e2e::E2EM,
         end
     end
     # print_graph(g)
-    run_graph_coloring(g, ntasks)
+    run_graph_coloring(g, ntasks, 0, 1)
     Threads.@threads for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
