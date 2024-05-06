@@ -37,19 +37,19 @@ function parallel_element_coloring(fes, e2e::E2EM,
         idx += length(map[i]) - 1 # -1 because we are not adding the diagonal element (self-reference)
     end
     add_nindex(g, length(map)+1, idx)
-    for i in eachindex(map)
+    Threads.@threads for i in eachindex(map)
         neighbors = map[i]
         p = 1
-        for j in eachindex(neighbors)
-            if (neighbors[j] != i) 
-                add_nlist(g, i, p, neighbors[j]) # we are not adding self-reference
+        @inbounds for j in eachindex(neighbors)
+            if (neighbors[j] != i)  # we are not adding self-reference
+                add_nlist(g, i, p, neighbors[j])
                 p += 1
             end
         end
     end
     # print_graph(g)
     run_graph_coloring(g, ntasks)
-    for i in 1:length(map)
+    Threads.@threads for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
     free_graph(g)
