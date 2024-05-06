@@ -38,23 +38,23 @@ function test()
     
     coloring = element_coloring(fes, n2e, collect(1:count(fes)))
     @time coloring = element_coloring(fes, n2e, collect(1:count(fes)))
-    @show unique(coloring[1])
+    # @show unique(coloring[1])
     test_coloring(coloring, n2e)
 
     coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
     @time coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
-    @show unique(coloring[1])
+    # @show unique(coloring[1])
  
 
-    element_colors, unique_colors = coloring
-    @show unique_colors = sort(unique_colors)
-    @show partitions = unique_colors
-    for j in 1:length(partitions)
-        sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
-        @show count(sfes)
-        vtkexportmesh("mesh_test_coloring_1-c=$(partitions[j]).vtk", fens, sfes)
-    end
-    
+    # element_colors, unique_colors = coloring
+    # @show unique_colors = sort(unique_colors)
+    # @show partitions = unique_colors
+    # for j in 1:length(partitions)
+    #     sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
+    #     @show count(sfes)
+    #     vtkexportmesh("mesh_test_coloring_1-c=$(partitions[j]).vtk", fens, sfes)
+    # end
+
    test_coloring(coloring, n2e)
 
     true
