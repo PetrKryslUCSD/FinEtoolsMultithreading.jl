@@ -1,5 +1,5 @@
 using ECLGraphColor: PECLgraph, make_graph, add_nlist, add_nindex
-using ECLGraphColor: get_color, run_graph_coloring, free_graph, print_graph
+using ECLGraphColor: get_color, run_graph_coloring, free_graph, print_graph, write_graph
 
 """
     parallel_element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
@@ -52,6 +52,7 @@ function parallel_element_coloring(fes, e2e::E2EM,
     Threads.@threads for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
+    write_graph(g, "testgraph.egr")
     free_graph(g)
     return element_colors, sort(unique(element_colors))
 end
