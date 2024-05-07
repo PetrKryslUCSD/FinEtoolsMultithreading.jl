@@ -98,12 +98,12 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     t0 = time(); 
 
     t1 = time()
-    e2e = FElemToNeighborsMap(n2e, fes)
+    e2e = FElemToNeighborsMap(n2e, fes, ECLGraphColor.int_type())
     times["FElemToNeighborsMap"] = [time() - t1]
     println("    Make element to neighbor map = $(times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
-    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e, ECLGraphColor.int_type())
+    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e)
     times["ElementColors"] = [time() - t1]
     println("    Compute element colors = $(times["ElementColors"]) [s]")
 

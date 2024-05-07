@@ -13,7 +13,7 @@ using FinEtoolsMultithreading
 using FinEtoolsMultithreading.Exports
 using FinEtoolsMultithreading: domain_decomposition, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup
-
+using ECLGraphColor       
 
 const A = 1.0 # dimension of the domain (length of the side of the square)
 
@@ -60,7 +60,7 @@ function _run(make_model, N, ntasks, assembly_only)
     t0 = time()
 
     t1 = time()
-    e2e = FElemToNeighborsMap(n2e, fes)
+    e2e = FElemToNeighborsMap(n2e, fes, ECLGraphColor.int_type())
     times["FElemToNeighborsMap"] = [time() - t1]
     println("    Make element to neighbor map = $(times["FElemToNeighborsMap"]) [s]")
 

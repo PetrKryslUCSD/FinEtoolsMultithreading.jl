@@ -7,6 +7,7 @@ using FinEtoolsMultithreading.Exports
 using FinEtoolsMultithreading: domain_decomposition, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup
 using FinEtools.MeshExportModule
+using ECLGraphColor       
 using LinearAlgebra
 using Arpack: eigs
 using DataDrop
@@ -131,7 +132,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     t0 = time()
 
     t1 = time()
-    e2e = FElemToNeighborsMap(n2e, fes)
+    e2e = FElemToNeighborsMap(n2e, fes, ECLGraphColor.int_type())
     mass_times["FElemToNeighborsMap"] = [time() - t1]
     println("    Make element to neighbor map = $(mass_times["FElemToNeighborsMap"]) [s]")
 
