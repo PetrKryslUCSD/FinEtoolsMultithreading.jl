@@ -11,12 +11,12 @@ __precompile__(true)
 using FinEtools.FESetModule: AbstractFESet
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 
-function _unique_elem_neighbors(self, n2emap, conn1)
+function _unique_elem_neighbors(self, n2emap, conn1, IntType) 
     len = 0
     @inbounds for k in conn1
         len += (length(n2emap[k]) - 1) # we are not adding self-references
     end
-    neighbors = fill(zero(eltype(conn1)), len)
+    neighbors = fill(zero(IntType), len)
     p = 1
     @inbounds for k in conn1
         for j in n2emap[k]
@@ -28,11 +28,10 @@ function _unique_elem_neighbors(self, n2emap, conn1)
     return unique!(sort!(neighbors))
 end
 
-function _e2e_map(n2e, conn)
-    T = typeof(n2e.map[1])
-    map = Array{T}(undef, length(conn))
+function _e2e_map(n2e, conn, IntType) 
+    map = Vector{Vector{IntType}}(undef, length(conn))
     Base.Threads.@threads for i in eachindex(map) # run this in PARALLEL
-        map[i] = _unique_elem_neighbors(i, n2e.map, conn[i])
+        map[i] = _unique_elem_neighbors(i, n2e.map, conn[i], IntType)
     end
     return map
 end
@@ -67,7 +66,7 @@ function FElemToNeighborsMap(
     n2e::N2EMAP,
     conn::Vector{NTuple{N,IT}},
 ) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
-    return FElemToNeighborsMap(_e2e_map(n2e, conn))
+    return FElemToNeighborsMap(_e2e_map(n2e, conn, IT))
 end
 
 """
@@ -84,7 +83,25 @@ function FElemToNeighborsMap(
     n2e::N2EMAP,
     fes::FE,
 ) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
-    return FElemToNeighborsMap(_e2e_map(n2e, fes.conn))
+    return FElemToNeighborsMap(_e2e_map(n2e, fes.conn, eltype(fes.conn[1])))
+end
+
+"""
+    FElemToNeighborsMap(
+        n2e::N2EMAP,
+        fes::FE,
+    ) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
+
+Map from finite elements to the elements that are connected by finite nodes.
+
+Convenience constructor.
+"""
+function FElemToNeighborsMap(
+    n2e::N2EMAP,
+    fes::FE,
+    IntType::IT
+) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet,IT}
+    return FElemToNeighborsMap(_e2e_map(n2e, fes.conn, IntType))
 end
 
 end

@@ -14,7 +14,8 @@ using Random
 using FinEtoolsMultithreading.Exports
 using FinEtoolsMultithreading: domain_decomposition, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt
-using FinEtoolsMultithreading          
+using FinEtoolsMultithreading   
+using ECLGraphColor       
 using DataDrop
 
 # Isotropic material
@@ -102,7 +103,7 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     println("    Make element to neighbor map = $(times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
-    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e)
+    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e, ECLGraphColor.int_type())
     times["ElementColors"] = [time() - t1]
     println("    Compute element colors = $(times["ElementColors"]) [s]")
 
