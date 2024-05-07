@@ -157,7 +157,7 @@ version = "1.6.0"
 
 [[deps.ECLGraphColor]]
 deps = ["Libdl", "Test"]
-git-tree-sha1 = "2db096f42dffa407cadf396a05f0cd0b50b236fc"
+git-tree-sha1 = "28351fdf0c4c6de0974f0f560c914d6bfd9411dc"
 repo-rev = "main"
 repo-url = "https://github.com/PetrKryslUCSD/ECLGraphColor.jl.git"
 uuid = "9c1363d0-405f-4779-b1bc-67e54cdcac85"
@@ -210,7 +210,7 @@ version = "3.0.7"
 deps = ["BenchmarkTools", "ChunkSplitters", "ECLGraphColor", "FinEtools", "InteractiveUtils", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
 path = ".."
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
-version = "0.3.5"
+version = "0.4.1"
 
 [[deps.HDF5]]
 deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]
