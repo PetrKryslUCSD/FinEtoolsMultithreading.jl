@@ -29,22 +29,18 @@ function parallel_element_coloring(fes, e2e::E2EM,
         ellistit = ellist
     end
     map = e2e.map
-    # -1 because we are not adding the diagonal element (self-reference)
-    g = make_graph(length(map), sum([length(c)-1 for c in map]))
+    g = make_graph(length(map), sum([length(c) for c in map]))
     idx = 1
     for i in eachindex(map)
         add_nindex(g, i, idx)
-        idx += length(map[i]) - 1 # -1 because we are not adding the diagonal element (self-reference)
+        idx += length(map[i]) 
     end
     add_nindex(g, length(map)+1, idx)
     Threads.@threads for i in eachindex(map)
         neighbors = map[i]
         p = 1
         @inbounds for j in eachindex(neighbors)
-            if (neighbors[j] != i)  # we are not adding self-reference
-                add_nlist(g, i, p, neighbors[j])
-                p += 1
-            end
+            add_nlist(g, i, p, neighbors[j]); p += 1
         end
     end
     # print_graph(g)

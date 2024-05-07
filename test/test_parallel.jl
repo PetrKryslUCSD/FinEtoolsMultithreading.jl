@@ -138,7 +138,9 @@ function test(n = 2)
     for i in eachindex(n2e.map)
         for k in n2e.map[i]
             for m in n2e.map[i]
+                (k != m) && ( # self-references are excluded
                 found = found && ((k in e2e.map[m]) && (m in e2e.map[k]))
+                )
             end
         end
     end
@@ -150,7 +152,9 @@ function test(n = 2)
     for i in eachindex(n2e.map)
         for k in n2e.map[i]
             for m in n2e.map[i]
+                (k != m) && ( # self-references are excluded
                 found = found && ((k in e2e.map[m]) && (m in e2e.map[k]))
+                )
             end
         end
     end

@@ -17,8 +17,7 @@ function _unique_node_neighbors(self, ellist, conn, npe)
     @inbounds for i in ellist
         for k in conn[i]
             if k != self # we are not adding self-reference
-                nodes[p] = k
-                p += 1
+                nodes[p] = k; p += 1
             end
         end
     end
