@@ -178,7 +178,9 @@ function test(n = 20)
     for i in eachindex(fes.conn)
         for k in fes.conn[i]
             for m in fes.conn[i]
+                (k != m) && ( # exclude self reference
                 found = found && ((k in n2n.map[m]) && (m in n2n.map[k]))
+                )
             end
         end
     end
@@ -190,7 +192,9 @@ function test(n = 20)
     for i in eachindex(fes.conn)
         for k in fes.conn[i]
             for m in fes.conn[i]
+                (k != m) && ( # exclude self reference
                 found = found && ((k in n2n.map[m]) && (m in n2n.map[k]))
+                )
             end
         end
     end

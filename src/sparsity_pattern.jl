@@ -1,7 +1,11 @@
-# This is about twenty percent faster than the original version.
 function _populate_with_dofs!(rowval, n, nghbrs, dofnums, colptr)
     s1 = colptr[dofnums[n, 1]]
     p = 0
+    k = n # The node itself needs to be considered
+    for d in axes(dofnums, 2)
+        rowval[s1+p] = dofnums[k, d]
+        p += 1
+    end
     @inbounds for k in nghbrs
         for d in axes(dofnums, 2)
             rowval[s1+p] = dofnums[k, d]
@@ -23,7 +27,7 @@ function _row_block_lengths(IT, map, dofnums)
     lengths = Vector{IT}(undef, total_dofs + 1)
     lengths[1] = 1
     @inbounds Threads.@threads for k in eachindex(map)
-        kl = length(map[k]) * nd
+        kl = (length(map[k]) + 1) * nd # +1 for the node itself
         for d in axes(dofnums, 2)
             j = dofnums[k, d]
             lengths[j+1] = kl

@@ -10,13 +10,16 @@ __precompile__(true)
 using FinEtools.FESetModule: AbstractFESet
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 
-function _unique_node_neighbors(ellist, conn, npe)
-    totn = length(ellist) * npe
+function _unique_node_neighbors(self, ellist, conn, npe)
+    totn = length(ellist) * (npe - 1) # we are not adding self-reference
     nodes = fill(zero(eltype(conn[1])), totn)
     p = 1
     @inbounds for i in ellist
         for k in conn[i]
-            nodes[p] = k; p += 1
+            if k != self # we are not adding self-reference
+                nodes[p] = k
+                p += 1
+            end
         end
     end
     return unique!(sort!(nodes))
@@ -27,7 +30,7 @@ function _make_map(n2e, conn)
     T = typeof(n2e.map[1])
     map = Vector{T}(undef, length(n2e.map))
     Base.Threads.@threads for i in eachindex(n2e.map) # run this in PARALLEL
-        map[i] = _unique_node_neighbors(n2e.map[i], conn, npe)
+        map[i] = _unique_node_neighbors(i, n2e.map[i], conn, npe)
     end
     return map
 end
@@ -40,7 +43,8 @@ elements.
 
 !!! note
 
-    Self references are included (a node is its own neighbor).
+    Self references are excluded (a node is its own neighbor, 
+    but it is not included in this data structure as such). 
 """
 struct FENodeToNeighborsMap{IT}
     # Map as a vector of vectors.
