@@ -1,4 +1,4 @@
-using ECLGraphColor: PECLgraph, make_graph, add_nlist, add_nindex
+using ECLGraphColor: PECLgraph, make_graph, add_nlist_all_row, add_nindex
 using ECLGraphColor: get_color, run_graph_coloring, free_graph, print_graph, write_graph
 
 """
@@ -38,10 +38,7 @@ function parallel_element_coloring(fes, e2e::E2EM,
     add_nindex(g, length(map)+1, idx)
     Threads.@threads for i in eachindex(map)
         neighbors = map[i]
-        p = 1
-        @inbounds for j in eachindex(neighbors)
-            add_nlist(g, i, p, neighbors[j]); p += 1
-        end
+        add_nlist_all_row(g, i, length(neighbors), neighbors); 
     end
     # print_graph(g)
     run_graph_coloring(g, ntasks, 0, 1)

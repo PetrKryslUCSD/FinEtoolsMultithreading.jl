@@ -178,11 +178,9 @@ version = "8.0.17"
 
 [[deps.FinEtoolsMultithreading]]
 deps = ["BenchmarkTools", "ChunkSplitters", "ECLGraphColor", "FinEtools", "InteractiveUtils", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
-git-tree-sha1 = "e198b5568cc9923a75d876804c9eee29d84ea3b1"
-repo-rev = "main"
-repo-url = "https://github.com/PetrKryslUCSD/FinEtoolsMultithreading.jl.git"
+path = ".."
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
-version = "0.4.0"
+version = "0.4.1"
 
 [[deps.HDF5]]
 deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]

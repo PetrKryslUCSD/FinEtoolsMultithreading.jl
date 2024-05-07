@@ -6,7 +6,7 @@ end
 
 using Pkg
 
-Pkg.add("ThreadPinning")
+# Pkg.add("ThreadPinning")
 
 Pkg.activate(".")
 Pkg.instantiate()
@@ -14,10 +14,10 @@ Pkg.instantiate()
 using LinearAlgebra
 LinearAlgebra.BLAS.set_num_threads(1)
 
-
-using ThreadPinning
-ThreadPinning.Prefs.set_os_warning(false)
-pinthreads(:cores)
+# Turn off thread pinning because it seems to interfere with the graph coloring library.
+# using ThreadPinning
+# ThreadPinning.Prefs.set_os_warning(false)
+# pinthreads(:cores)
 
 N = parse(Int, ARGS[1])
 ntasks = Threads.nthreads()
