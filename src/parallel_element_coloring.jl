@@ -29,7 +29,6 @@ function parallel_element_coloring(fes, e2e::E2EM,
         ellistit = ellist
     end
     map = e2e.map
-@time begin
     g = make_graph(length(map), sum([length(c) for c in map]))
     idx = 1
     for i in eachindex(map)
@@ -37,20 +36,15 @@ function parallel_element_coloring(fes, e2e::E2EM,
         idx += length(map[i]) 
     end
     add_nindex(g, length(map)+1, idx)
-end
-@time begin
     Threads.@threads for i in eachindex(map)
         neighbors = map[i]
         add_nlist_all_row(g, i, length(neighbors), neighbors); 
     end
-end
     # print_graph(g)
     run_graph_coloring(g, ntasks, 0, 1)
-@time begin
     Threads.@threads for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
-end
     # write_graph(g, "testgraph.egr")
     free_graph(g)
     return element_colors, sort(unique(element_colors))
