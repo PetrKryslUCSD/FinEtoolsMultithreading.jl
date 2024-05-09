@@ -28,3 +28,4 @@ settings.json
 *.json
 *.vtk
 *.vtu
+*.egr
