@@ -2,17 +2,15 @@ function _populate_with_dofs!(rowval, n, nghbrs, dofnums, colptr)
     s1 = colptr[dofnums[n, 1]]
     p = 0
     k = n # The node itself needs to be considered
-    for d in axes(dofnums, 2)
-        rowval[s1+p] = dofnums[k, d]
-        p += 1
+    @inbounds for d in axes(dofnums, 2)
+        rowval[s1+p] = dofnums[k, d]; p += 1
     end
     @inbounds for k in nghbrs
         for d in axes(dofnums, 2)
-            rowval[s1+p] = dofnums[k, d]
-            p += 1
+            rowval[s1+p] = dofnums[k, d]; p += 1
         end
     end
-    bl = p
+    bl = p # block length
     sort!(@view(rowval[s1:s1+bl-1]))
     @inbounds for d in 2:size(dofnums, 2)
         s = colptr[dofnums[n, d]]
