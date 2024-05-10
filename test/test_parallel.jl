@@ -5,8 +5,6 @@ using FinEtoolsMultithreading: SysmatAssemblerSparsePatt, SysmatAssemblerSparseP
 using FinEtoolsMultithreading.FENodeToFEMapModule: FENodeToFEMapThr
 using LinearAlgebra
 using Test
-using InteractiveUtils
-using BenchmarkTools
 
 function test()
     W = 1.1
@@ -38,8 +36,6 @@ using FinEtoolsMultithreading: SysmatAssemblerSparsePatt, SysmatAssemblerSparseP
 using FinEtoolsMultithreading.FENodeToFEMapModule: FENodeToFEMapThr
 using LinearAlgebra
 using Test
-using InteractiveUtils
-using BenchmarkTools
 
 function test()
     W = 1.1
