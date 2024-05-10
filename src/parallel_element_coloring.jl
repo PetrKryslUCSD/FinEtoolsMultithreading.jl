@@ -15,8 +15,8 @@ Vector of element colors, vector of unique colors.
 """
 function element_coloring(fes, e2e::E2EM, ntasks::IT1) where {E2EM<:FElemToNeighborsMap{IT} where {IT},IT1<:Integer}
     element_colors = fill(zero(Int16), count(fes))
-    if (!Base.Sys.islinux())
-        return element_coloring(fes, e2e, ellist)
+    if !((Base.Sys.islinux()) || (Base.Sys.isapple())) 
+        return element_coloring(fes, e2e)
     end
     map = e2e.map
     g = make_graph(length(map), sum([length(c) for c in map]))
