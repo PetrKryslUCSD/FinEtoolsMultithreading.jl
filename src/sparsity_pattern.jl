@@ -1,4 +1,4 @@
-function _populate_with_dofs!(rowval, n, nghbrs, dofnums, colptr)
+function _store_dofs!(rowval, n, nghbrs, dofnums, colptr)
     s1 = colptr[dofnums[n, 1]]
     p = 0
     k = n # The node itself needs to be considered
@@ -19,7 +19,7 @@ function _populate_with_dofs!(rowval, n, nghbrs, dofnums, colptr)
     return nothing
 end
 
-function _row_block_lengths(IT, map, dofnums)
+function _row_blocks(IT, map, dofnums)
     nd = size(dofnums, 2)
     total_dofs = length(map) * nd
     lengths = Vector{IT}(undef, total_dofs + 1)
@@ -42,9 +42,9 @@ function _acc_start_ptr!(s)
     s
 end
 
-function _prepare_arrays(IT, FT, map, dofnums)
+function _csc_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
-    colptr = _row_block_lengths(IT, map, dofnums)
+    colptr = _row_blocks(IT, map, dofnums)
     # Now we start overwriting the "lengths" array with the starts
     ThreadedScans.scan!(+, colptr) # equivalent to _acc_start_ptr!(start)
     sumlen = colptr[end] - 1
@@ -75,9 +75,9 @@ function sparse_symmetric_csc_pattern(
     FT = Float64,
 ) where {IT<:Integer}
     @assert length(n2n.map) == size(dofnums, 1)
-    colptr, rowval, nzval = _prepare_arrays(IT, FT, n2n.map, dofnums)
+    colptr, rowval, nzval = _csc_arrays(IT, FT, n2n.map, dofnums)
     Base.Threads.@threads for n in axes(dofnums, 1)
-        _populate_with_dofs!(rowval, n, n2n.map[n], dofnums, colptr)
+        _store_dofs!(rowval, n, n2n.map[n], dofnums, colptr)
     end 
     return SparseMatrixCSC(nrowscols, nrowscols, colptr, rowval, nzval)
 end

@@ -10,7 +10,7 @@ __precompile__(true)
 using FinEtools.FESetModule: AbstractFESet
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 
-function _unique_neighbors(self, ellist, conn, npe)
+function _nneighbors(self, ellist, conn, npe)
     totn = length(ellist) * (npe - 1) # we are not adding self-reference
     nodes = fill(zero(eltype(conn[1])), totn)
     p = 1
@@ -28,7 +28,7 @@ function _make_map(n2e, conn)
     npe = length(conn[1])
     map = Vector{eltype(n2e.map)}(undef, length(n2e.map))
     Base.Threads.@threads for i in eachindex(n2e.map) # run this in PARALLEL
-        map[i] = _unique_neighbors(i, n2e.map[i], conn, npe)
+        map[i] = _nneighbors(i, n2e.map[i], conn, npe)
     end
     return map
 end
