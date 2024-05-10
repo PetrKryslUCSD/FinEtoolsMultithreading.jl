@@ -1,7 +1,6 @@
 module mparallelcoloring_2
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: parallel_element_coloring
 using ECLGraphColor
 using LinearAlgebra
 using Test
@@ -31,25 +30,22 @@ function test()
     # nl, nt, nw = 27, 23, 29
     ntasks = 2
 
+    # @show methods(element_coloring)
+
     fens, fes = T4block(Float64.((nl, nw, nt))..., nl, nw, nt)
     
     n2e = FENodeToFEMap(fes, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     e2e = FElemToNeighborsMap(n2e, fes.conn)
     
-    coloring = element_coloring(fes, n2e, collect(1:count(fes)))
-    @time coloring = element_coloring(fes, n2e, collect(1:count(fes)))
+    coloring = element_coloring(fes, n2e)
+    @time coloring = element_coloring(fes, n2e)
     # @show unique(coloring[1])
     test_coloring(coloring, n2e)
 
-    # coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
-    # @time coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
-    # # @show unique(coloring[1])
- 
-
     e2e = FElemToNeighborsMap(n2e, fes, ECLGraphColor.int_type())
-    coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
-    @time coloring = parallel_element_coloring(fes, e2e, collect(1:count(fes)))
+    coloring = element_coloring(fes, e2e, ntasks)
+    @time coloring = element_coloring(fes, e2e, ntasks)
     # @show unique(coloring[1])
  
 

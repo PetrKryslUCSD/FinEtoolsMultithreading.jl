@@ -90,7 +90,7 @@ function parallel_make_matrix(
     n2n = FENodeToNeighborsMap(n2e, fes)
     K_pattern = sparse_symmetric_csc_pattern(dofnums, ndofs, n2n, FT)
     e2e = FElemToNeighborsMap(n2e, fes)
-    coloring = element_coloring(fes, e2e)
+    coloring = element_coloring(fes, e2e, ntasks)
     decomposition = domain_decomposition(fes, coloring, createsubd, ntasks)
     return parallel_matrix_assembly!(
         SysmatAssemblerSparsePatt(K_pattern),

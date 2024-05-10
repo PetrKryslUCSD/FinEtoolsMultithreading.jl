@@ -10,6 +10,7 @@ __precompile__(true)
 
 using FinEtools.FESetModule: AbstractFESet
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
+using ECLGraphColor
 
 function _unique_elem_neighbors(self, n2emap, conn1, IntType) 
     len = 0
@@ -83,7 +84,7 @@ function FElemToNeighborsMap(
     n2e::N2EMAP,
     fes::FE,
 ) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
-    return FElemToNeighborsMap(_e2e_map(n2e, fes.conn, eltype(fes.conn[1])))
+    return FElemToNeighborsMap(_e2e_map(n2e, fes.conn, ECLGraphColor.int_type()))
 end
 
 """

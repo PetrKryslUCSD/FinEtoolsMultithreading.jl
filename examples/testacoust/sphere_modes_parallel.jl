@@ -137,7 +137,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Make element to neighbor map = $(mass_times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
-    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e)
+    coloring = FinEtoolsMultithreading.element_coloring(fes, e2e, ntasks)
     mass_times["ElementColors"] = [time() - t1]
     println("    Compute element colors = $(mass_times["ElementColors"]) [s]")
 

@@ -65,7 +65,7 @@ function _run(make_model, N, ntasks, assembly_only)
     println("    Make element to neighbor map = $(times["FElemToNeighborsMap"]) [s]")
 
     t1 = time()
-    coloring = FinEtoolsMultithreading.parallel_element_coloring(fes, e2e)
+    coloring = FinEtoolsMultithreading.element_coloring(fes, e2e, ntasks)
     times["ElementColors"] = [time() - t1]
     println("    Compute element colors = $(times["ElementColors"]) [s]")
 

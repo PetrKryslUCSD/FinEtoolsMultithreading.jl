@@ -46,6 +46,7 @@ export FElemToNeighborsMap
 using ..FENodeToFEMapModule: FENodeToFEMapThr
 # Exported: type for maps from nodes to elements computed on multiple threads
 export FENodeToFEMapThr
+export element_coloring
 end
 
 # Enable LSP look up in test modules

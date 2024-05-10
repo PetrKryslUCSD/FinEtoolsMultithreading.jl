@@ -1,3 +1,4 @@
+import FinEtools: element_coloring
 """
     element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
     
@@ -14,16 +15,11 @@ Vector of element colors, vector of unique colors, and vector of counts of each
 color.
 
 """
-function element_coloring(fes, e2e::E2EM, ellist::Vector{IT} = Int[]) where {E2EM<:FElemToNeighborsMap,IT<:Integer}
+function element_coloring(fes, e2e::E2EM) where {E2EM<:FElemToNeighborsMap{IT} where {IT}}
     element_colors = fill(zero(Int16), count(fes))
     unique_colors = eltype(element_colors)[1]
-    color_counts = IT[0]
-    if isempty(ellist) 
-        ellistit = 1:count(fes)
-    else
-        ellistit = ellist
-    end
-    return element_coloring!(element_colors, unique_colors, color_counts, e2e.map, ellistit)
+    color_counts = eltype(element_colors)[0]
+    return element_coloring!(element_colors, unique_colors, color_counts, e2e.map)
 end
 
 function __find_of_min_count(color_used, first, color_counts)
@@ -47,9 +43,9 @@ function __find_first_avail(color_used)
     return 0
 end
 
-function element_coloring!(element_colors, unique_colors, color_counts, e2emap, ellist_iterator) 
+function element_coloring!(element_colors, unique_colors, color_counts, e2emap) 
     color_used = fill(zero(eltype(element_colors)), length(unique_colors))
-    for e in ellist_iterator
+    for e in eachindex(element_colors)
         if element_colors[e] == 0
             color_used .= 0; ncolorsatneighbors = 0
             for oe in e2emap[e]
