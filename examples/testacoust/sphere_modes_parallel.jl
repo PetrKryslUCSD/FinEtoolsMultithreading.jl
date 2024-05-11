@@ -147,7 +147,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Make node to neighbor map = $(mass_times["FENodeToNeighborsMap"]) [s]")
 
     t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(P.dofnums, nalldofs(P), n2n, eltype(P.values))
+    K_pattern = csc_symmetric_pattern(P.dofnums, nalldofs(P), n2n, eltype(P.values))
     mass_times["SparsityPattern"] = [time() - t1]
     println("    Sparsity pattern = $(mass_times["SparsityPattern"]) [s]")
 
@@ -197,7 +197,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Make node to neighbor map = $(stiffness_times["FENodeToNeighborsMap"]) [s]")
 
     t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(P.dofnums, nalldofs(P), n2n, eltype(P.values))
+    K_pattern = csc_symmetric_pattern(P.dofnums, nalldofs(P), n2n, eltype(P.values))
     stiffness_times["SparsityPattern"] = [time() - t1]
     println("    Sparsity pattern = $(stiffness_times["SparsityPattern"]) [s]")
 

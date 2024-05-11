@@ -88,7 +88,7 @@ function parallel_make_matrix(
 )
     @assert kind in [:CSC, :CSR]
     n2n = FENodeToNeighborsMap(n2e, fes)
-    K_pattern = sparse_symmetric_csc_pattern(dofnums, ndofs, n2n, FT)
+    K_pattern = csc_symmetric_pattern(dofnums, ndofs, n2n, FT)
     e2e = FElemToNeighborsMap(n2e, fes)
     coloring = element_coloring(fes, e2e, ntasks)
     decomposition = domain_decomposition(fes, coloring, createsubd, ntasks)

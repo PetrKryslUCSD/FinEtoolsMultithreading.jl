@@ -75,7 +75,7 @@ function _run(make_model, N, ntasks, assembly_only)
     println("    Make node to neighbor map = $(times["FENodeToNeighborsMap"]) [s]")
 
     t1 = time()
-    K_pattern = sparse_symmetric_csc_pattern(Temp.dofnums, nalldofs(Temp), n2n, eltype(Temp.values))
+    K_pattern = csc_symmetric_pattern(Temp.dofnums, nalldofs(Temp), n2n, eltype(Temp.values))
     times["SparsityPattern"] = [time() - t1]
     println("    Sparsity pattern = $(times["SparsityPattern"]) [s]")
 

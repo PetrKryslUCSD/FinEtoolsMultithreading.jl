@@ -35,8 +35,8 @@ export parallel_make_matrix
 # These three routines give access to intermediate steps
 using ..FinEtoolsMultithreading: parallel_matrix_assembly!
 export parallel_matrix_assembly!
-using ..FinEtoolsMultithreading: sparse_symmetric_csc_pattern
-export sparse_symmetric_csc_pattern
+using ..FinEtoolsMultithreading: csc_symmetric_pattern
+export csc_symmetric_pattern
 using ..FENodeToNeighborsMapModule: FENodeToNeighborsMap
 # Exported: type for maps from nodes to connected nodes
 export FENodeToNeighborsMap

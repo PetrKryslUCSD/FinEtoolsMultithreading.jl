@@ -54,7 +54,7 @@ function _csc_arrays(IT, FT, map, dofnums)
 end
 
 """
-    sparse_symmetric_csc_pattern(
+    csc_symmetric_pattern(
         dofnums::Array{IT,2},
         nrowscols,
         n2n,
@@ -68,7 +68,7 @@ Uses the following data structures:
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
 ```
 """
-function sparse_symmetric_csc_pattern(
+function csc_symmetric_pattern(
     dofnums::Array{IT,2},
     nrowscols,
     n2n,
