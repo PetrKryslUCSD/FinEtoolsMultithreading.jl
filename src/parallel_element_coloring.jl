@@ -31,7 +31,7 @@ function element_coloring(fes, e2e::E2EM, ntasks::IT1) where {E2EM<:FElemToNeigh
         add_nlist_all_row(g, i, length(neighbors), neighbors); 
     end
     # print_graph(g)
-    run_graph_coloring(g, ntasks, 0, 1)
+    run_graph_coloring(g, ntasks, 0, 0)
     Threads.@threads for i in 1:length(map)
         element_colors[i] = get_color(g, i) 
     end
