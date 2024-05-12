@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.3"
+julia_version = "1.10.2"
 manifest_format = "2.0"
 project_hash = "ff94c7c14df59fd902b0e870e26d9c05b5923d44"
 
@@ -71,12 +71,6 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[deps.BenchmarkTools]]
-deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
-git-tree-sha1 = "f1dff6729bc61f4d49e140da1af55dcd1ac97b2f"
-uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "1.5.0"
-
 [[deps.BitTwiddlingConvenienceFunctions]]
 deps = ["Static"]
 git-tree-sha1 = "0c5f81f47bbbcf4aea7b2959135713459170798b"
@@ -120,7 +114,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.1+0"
+version = "1.1.0+0"
 
 [[deps.CpuId]]
 deps = ["Markdown"]
@@ -157,11 +151,9 @@ version = "1.6.0"
 
 [[deps.ECLGraphColor]]
 deps = ["Libdl", "Test"]
-git-tree-sha1 = "28351fdf0c4c6de0974f0f560c914d6bfd9411dc"
-repo-rev = "main"
-repo-url = "https://github.com/PetrKryslUCSD/ECLGraphColor.jl.git"
+git-tree-sha1 = "8fc07b58a84d3113eacf349b94f2b22027965c14"
 uuid = "9c1363d0-405f-4779-b1bc-67e54cdcac85"
-version = "0.1.4"
+version = "0.1.5"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -207,10 +199,10 @@ uuid = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
 version = "3.0.7"
 
 [[deps.FinEtoolsMultithreading]]
-deps = ["BenchmarkTools", "ChunkSplitters", "ECLGraphColor", "FinEtools", "InteractiveUtils", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
+deps = ["ChunkSplitters", "ECLGraphColor", "FinEtools", "LinearAlgebra", "SparseArrays", "SparseMatricesCSR", "Test", "ThreadedScans"]
 path = ".."
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
-version = "0.4.2"
+version = "0.4.3"
 
 [[deps.HDF5]]
 deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]
@@ -441,10 +433,6 @@ version = "1.4.3"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-
-[[deps.Profile]]
-deps = ["Printf"]
-uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
