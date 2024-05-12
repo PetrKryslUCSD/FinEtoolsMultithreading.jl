@@ -1,12 +1,13 @@
 name = "FinEtoolsMultithreading"
 uuid = "6d2818ca-ed81-4c53-b1fa-1f68c2fd5913"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "0.4.4"
+version = "0.4.5"
 
 [deps]
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
 ECLGraphColor = "9c1363d0-405f-4779-b1bc-67e54cdcac85"
 FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
+LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
@@ -18,6 +19,7 @@ ChunkSplitters = "^2"
 ECLGraphColor = "^0.1"
 FinEtools = "^8"
 LinearAlgebra = "^1.10"
+LazyArrays = "^1.10"
 SparseArrays = "^1.10"
 SparseMatricesCSR = "^0.6"
 ThreadedScans = "^0.1"

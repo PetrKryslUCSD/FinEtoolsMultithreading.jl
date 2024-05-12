@@ -1,11 +1,9 @@
+using LazyArrays
+
 function _store_dofs!(rowval, n, nghbrs, dofnums, colptr)
     s1 = colptr[dofnums[n, 1]]
     p = 0
-    k = n # The node itself needs to be considered
-    @inbounds for d in axes(dofnums, 2)
-        rowval[s1+p] = dofnums[k, d]; p += 1
-    end
-    @inbounds for k in nghbrs
+    @inbounds for k in ApplyArray(vcat, n, nghbrs)
         for d in axes(dofnums, 2)
             rowval[s1+p] = dofnums[k, d]; p += 1
         end
