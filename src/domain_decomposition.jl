@@ -27,17 +27,30 @@ and then in parallel execute all the finite element machines for that color.
 function decompose(fes, coloring, createsubd,
     ntasks=Threads.nthreads())
     el_colors, uniq_colors = coloring
-    decomposition = fill([], length(uniq_colors))
+    decomp = fill([], length(uniq_colors))
     Threads.@threads for i in eachindex(uniq_colors)
-        ellist = findall(c -> c == uniq_colors[i], el_colors)
-        fesofacolor = subset(fes, ellist)
-        decomposition[i] =
-            _make_femms(fesofacolor, ntasks, createsubd)
+        c = uniq_colors[i]
+        ellist = findall(_c -> _c == c, el_colors)
+        _fes = subset(fes, ellist)
+        decomp[i] = _make_femms(_fes, ntasks, createsubd)
     end
-    return decomposition
+    return decomp
 end
 
 function _make_femms(fesofacolor, ntasks, createsubd)
     chks = chunks(1:count(fesofacolor), ntasks)
     return [createsubd(subset(fesofacolor, ch)) for (ch, j) in chks]
 end
+
+# using LazyArrays
+
+# i = 1000
+# is = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# function f(i, is)
+#     for n in ApplyArray(vcat, i, is)
+#         n
+#     end
+# end
+
+# @time f(i, is)
