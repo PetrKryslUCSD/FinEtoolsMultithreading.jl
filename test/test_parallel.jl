@@ -304,7 +304,7 @@ end
 module mparallelassembly_high_level_2
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+using FinEtoolsMultithreading: decompose, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using LinearAlgebra
 using Test
 
@@ -336,7 +336,7 @@ function test()
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
     K_pattern = csc_symmetric_pattern(psi.dofnums, nalldofs(psi), n2n, eltype(psi.values))
     coloring = element_coloring(fes, n2e)
-    decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
+    decomposition = decompose(fes, coloring, createsubdomain, ntasks)
     K = parallel_matrix_assembly!(
         SysmatAssemblerSparsePatt(K_pattern),
         decomposition,
@@ -359,7 +359,7 @@ end
 module mparallelassembly_high_level_3
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+using FinEtoolsMultithreading: decompose, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using LinearAlgebra
 using Test
 function test_coloring(coloring, n2e)
@@ -400,7 +400,7 @@ function test()
     coloring = element_coloring(fes, n2e)
     test_coloring(coloring, n2e)
 
-    decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
+    decomposition = decompose(fes, coloring, createsubdomain, ntasks)
     K = parallel_matrix_assembly!(
         SysmatAssemblerSparsePatt(K_pattern),
         decomposition,
@@ -427,7 +427,7 @@ end
 module mparallelassembly_high_level_4
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+using FinEtoolsMultithreading: decompose, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using LinearAlgebra
 using Test
 
@@ -481,7 +481,7 @@ end
 module mparallelassembly_high_level_5
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+using FinEtoolsMultithreading: decompose, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using LinearAlgebra
 using Test
 
@@ -535,7 +535,7 @@ end
 module mparallelassembly_high_level_6
 using FinEtools
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
+using FinEtoolsMultithreading: decompose, parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using LinearAlgebra
 using Test
 
@@ -574,7 +574,7 @@ function test()
     # n2n = FENodeToNeighborsMap(n2e, fes)
     # K_pattern = csc_symmetric_pattern(psi.dofnums, nalldofs(psi), n2n, zero(Float64))
     # coloring = element_coloring(fes, n2e)
-    # decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
+    # decomposition = decompose(fes, coloring, createsubdomain, ntasks)
     # K = parallel_matrix_assembly!(
     #     SysmatAssemblerSparsePatt(K_pattern),
     #     decomposition,

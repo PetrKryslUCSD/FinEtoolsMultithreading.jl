@@ -11,7 +11,7 @@ using SparseArrays
 using SymRCM
 using FinEtoolsMultithreading
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, 
+using FinEtoolsMultithreading: decompose, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup
 using ECLGraphColor       
 
@@ -80,7 +80,7 @@ function _run(make_model, N, ntasks, assembly_only)
     println("    Sparsity pattern = $(times["SparsityPattern"]) [s]")
 
     t1 = time()
-    decomposition = domain_decomposition(fes, coloring,
+    decomposition = decompose(fes, coloring,
         (fessubset) -> FEMMHeatDiff(IntegDomain(fessubset, ir), material),
         ntasks)
     times["DomainDecomposition"] = [time() - t1]

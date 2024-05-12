@@ -76,24 +76,21 @@ Assemble a sparse matrix.
 6. Compute and assemble the matrix entries.
 """
 function parallel_make_matrix(
-    fes,
-    dofnums,
-    ndofs,
-    FT,
-    n2e,
-    createsubd,
-    matrixupdt!,
-    ntasks,
-    kind,
+    fes, dofnums, ndofs, FT, n2e, # data
+    createsubd, matrixupdt!,      # functions
+    ntasks,                       # how many threads?
+    kind
 )
     @assert kind in [:CSC, :CSR]
-    n2n = FENodeToNeighborsMap(n2e, fes)
-    K_pattern = csc_symmetric_pattern(dofnums, ndofs, n2n, FT)
-    e2e = FElemToNeighborsMap(n2e, fes)
-    coloring = element_coloring(fes, e2e, ntasks)
-    decomposition = domain_decomposition(fes, coloring, createsubd, ntasks)
-    return parallel_matrix_assembly!(
-        SysmatAssemblerSparsePatt(K_pattern),
+    n2n = FENodeToNeighborsMap(n2e, fes) # ALG 1
+    matrix = csc_symmetric_pattern(dofnums, # ALG 2
+                                 ndofs, n2n, FT)
+    e2e = FElemToNeighborsMap(n2e, fes) # ALG 3
+    coloring = element_coloring(fes, e2e, ntasks) # ALG 4
+    decomposition = decompose(fes, coloring, # ALG 5
+                              createsubd, ntasks)
+    return parallel_matrix_assembly!(  # ALG 6
+        SysmatAssemblerSparsePatt(matrix),
         decomposition,
         matrixupdt!,
     )

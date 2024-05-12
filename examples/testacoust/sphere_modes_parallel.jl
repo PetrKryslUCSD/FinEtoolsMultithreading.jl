@@ -4,7 +4,7 @@ using FinEtools.AlgoBaseModule: matrix_blocked
 using FinEtoolsAcoustics
 using FinEtoolsMultithreading
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, 
+using FinEtoolsMultithreading: decompose, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt, SysmatAssemblerSparsePattwLookup
 using FinEtools.MeshExportModule
 using ECLGraphColor       
@@ -152,7 +152,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Sparsity pattern = $(mass_times["SparsityPattern"]) [s]")
 
     t1 = time()
-    decomposition = domain_decomposition(fes, coloring,
+    decomposition = decompose(fes, coloring,
         (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material), ntasks)
     mass_times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(mass_times["DomainDecomposition"]) [s]")
@@ -202,7 +202,7 @@ function run(N=2, ntasks=Threads.nthreads(), assembly_only=false)
     println("    Sparsity pattern = $(stiffness_times["SparsityPattern"]) [s]")
 
     t1 = time()
-    decomposition = domain_decomposition(fes, coloring,
+    decomposition = decompose(fes, coloring,
         (fessubset) -> FEMMAcoust(IntegDomain(fessubset, GaussRule(3, 2)), material), ntasks)
     stiffness_times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(stiffness_times["DomainDecomposition"]) [s]")

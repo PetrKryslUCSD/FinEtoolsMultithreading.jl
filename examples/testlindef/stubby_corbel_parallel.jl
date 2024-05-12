@@ -12,7 +12,7 @@ using Printf
 using SymRCM
 using Random
 using FinEtoolsMultithreading.Exports
-using FinEtoolsMultithreading: domain_decomposition, 
+using FinEtoolsMultithreading: decompose, 
           parallel_matrix_assembly!, SysmatAssemblerSparsePatt
 using FinEtoolsMultithreading   
 using ECLGraphColor       
@@ -118,7 +118,7 @@ function run(N = 10, ntasks = Threads.nthreads(), assembly_only = false)
     println("    Sparsity pattern = $(times["SparsityPattern"]) [s]")
 
     t1 = time()
-    decomposition = domain_decomposition(fes, coloring, createsubdomain, ntasks)
+    decomposition = decompose(fes, coloring, createsubdomain, ntasks)
     times["DomainDecomposition"] = [time() - t1]
     println("    Domain decomposition = $(times["DomainDecomposition"]) [s]")
 
