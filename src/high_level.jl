@@ -82,14 +82,14 @@ function parallel_make_matrix(
     kind
 )
     @assert kind in [:CSC, :CSR]
-    n2n = FENodeToNeighborsMap(n2e, fes) # ALG 1
-    matrix = csc_symmetric_pattern(dofnums, # ALG 2
+    n2n = FENodeToNeighborsMap(n2e, fes)          # ALG 1
+    matrix = csc_symmetric_pattern(dofnums,       # ALG 2
                                  ndofs, n2n, FT)
-    e2e = FElemToNeighborsMap(n2e, fes) # ALG 3
+    e2e = FElemToNeighborsMap(n2e, fes)           # ALG 3
     coloring = element_coloring(fes, e2e, ntasks) # ALG 4
-    decomposition = decompose(fes, coloring, # ALG 5
+    decomposition = decompose(fes, coloring,      # ALG 5
                               createsubd, ntasks)
-    return parallel_matrix_assembly!(  # ALG 6
+    return parallel_matrix_assembly!(             # ALG 6
         SysmatAssemblerSparsePatt(matrix),
         decomposition,
         matrixupdt!,
