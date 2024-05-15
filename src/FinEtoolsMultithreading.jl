@@ -14,6 +14,7 @@ using ThreadedScans
 using ECLGraphColor
 
 include("utilities.jl")
+include("prefixsum.jl")
 include("FENodeToNeighborsMapModule.jl")
 using .FENodeToNeighborsMapModule: FENodeToNeighborsMap
 include("FElemToNeighborsMapModule.jl")
