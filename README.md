@@ -20,3 +20,5 @@ Check out the [`examples/README.md`](examples/README.md) documentation.
 
 A [paper](https://dx.doi.org/10.2139/ssrn.4775111) has been submitted and is under review.
 The paper is consistent with v0.1.13. 
+
+The revision of the above paper is now under a review. A draft has been placed in the `docs` folder. The revision is consistent with v0.5.0.
