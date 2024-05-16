@@ -1,7 +1,7 @@
 module mscan001
 using Test
 using ThreadedScans
-using FinEtoolsMultithreading: _scan!, parallel_segmented_prefix_scan!
+using FinEtoolsMultithreading: _scan!, psp_scan!
 function test()
     a = [1, 3, 4, 2, 6, 3, 2, 1, 3, 4, 7, 8, 3]
     for i in 1:12
@@ -20,11 +20,11 @@ function test()
     
     @test maximum(abs.(b - c)) == 0
     
-    @info "parallel_segmented_prefix_scan!"
+    @info "psp_scan!"
     d = deepcopy(a)
-    parallel_segmented_prefix_scan!(d[1:5])
+    psp_scan!(d[1:5])
     d = deepcopy(a)
-    parallel_segmented_prefix_scan!(d)
+    psp_scan!(d)
     
     @test maximum(abs.(b - d)) == 0
     true

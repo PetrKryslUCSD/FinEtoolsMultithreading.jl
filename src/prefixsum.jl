@@ -10,7 +10,18 @@ function _scan!(arr)
     return arr
 end
 
-function parallel_segmented_prefix_scan!(arr)
+"""
+    psp_scan!(arr)
+
+Perform prefix sum scan on the input array `arr` in place.
+
+# Arguments
+- `arr`: The input array to perform prefix sum scan on. The array is modified
+  in-place.
+
+The computation is multithreaded, and uses all available threads.
+"""
+function psp_scan!(arr)
     n = length(arr)
     ntasks = Threads.nthreads()
     chks = chunks(1:n, ntasks)

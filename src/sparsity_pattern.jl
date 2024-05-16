@@ -43,9 +43,9 @@ end
 function _csc_arrays(IT, FT, map, dofnums)
     # First we create an array of the lengths of the dof blocks
     colptr = _row_blocks(IT, map, dofnums)
-    # Now we start overwriting the "lengths" array with the starts
-    # ThreadedScans.scan!(+, colptr) # equivalent to _acc_start_ptr!(start)
-    parallel_segmented_prefix_scan!(colptr)
+    # Now we start overwriting the "lengths" array colptr with the starts
+    # ThreadedScans.scan!(+, colptr) # replaced because of some weird results on the Grace system
+    psp_scan!(colptr)
     sumlen = colptr[end] - 1
     rowval = Vector{IT}(undef, sumlen) # This will get filled in later
     nzval = _zeros_via_calloc(FT, sumlen) # This needs to be initialized for future accumulation
