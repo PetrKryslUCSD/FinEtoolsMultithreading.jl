@@ -22,3 +22,5 @@ A [paper](https://dx.doi.org/10.2139/ssrn.4775111) has been submitted and is und
 The paper is consistent with v0.1.13. 
 
 The revision of the above paper is now under a review. A draft has been placed in the [`docs`](./docs) folder. The revision is consistent with v0.5.0.
+
+The paper was accepted for publication. Download from the [publisher](https://authors.elsevier.com/sd/article/S0045-7825(24)00332-3).
